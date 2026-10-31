@@ -108,6 +108,7 @@ private fun Application.configureServer(context: Context, config: ServerConfig) 
             prettyPrint = true
             isLenient = true
             ignoreUnknownKeys = true
+            encodeDefaults = true
         })
     }
 
@@ -229,7 +230,9 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig) {
                 rootPath = rootDir.absolutePath,
                 freeSpaceBytes = freeSpace,
                 totalSpaceBytes = totalSpace,
-                clipboardEnabled = config.clipboardEnabled
+                clipboardEnabled = config.clipboardEnabled,
+                readOnly = config.readOnly,
+                uploadDisabled = config.uploadDisabled
             )
         )
     }
@@ -393,6 +396,10 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig) {
 
     // Delete File or Directory API (supports DELETE and POST)
     suspend fun executeDelete(path: String, call: ApplicationCall) {
+        if (config.readOnly) {
+            call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "Server is in read-only mode"))
+            return
+        }
         if (path.isBlank() || path == "/") {
             call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "Cannot delete root storage"))
             return
@@ -438,6 +445,10 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig) {
 
     // Rename File or Folder API
     post("/api/rename") {
+        if (config.readOnly) {
+            call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "Server is in read-only mode"))
+            return@post
+        }
         try {
             val req = call.receive<RenameRequest>()
             val path = req.path.trim()
@@ -486,6 +497,10 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig) {
 
     // Create New Folder API
     post("/api/mkdir") {
+        if (config.readOnly) {
+            call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "Server is in read-only mode"))
+            return@post
+        }
         try {
             val req = call.receive<CreateFolderRequest>()
             val parentPath = req.path.trim()
@@ -521,6 +536,10 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig) {
 
     // Edit Text/Content API
     post("/api/edit") {
+        if (config.readOnly) {
+            call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "Server is in read-only mode"))
+            return@post
+        }
         try {
             val req = call.receive<EditFileRequest>()
             val path = req.path.trim()
@@ -548,6 +567,11 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig) {
 
     // Multi-part File Upload API
     post("/api/upload") {
+        if (config.uploadDisabled || config.readOnly) {
+            val message = if (config.uploadDisabled) "File uploads are disabled" else "Server is in read-only mode"
+            call.respond(HttpStatusCode.Forbidden, OperationResponse(false, message))
+            return@post
+        }
         try {
             val queryPath = call.request.queryParameters["path"]
             var targetSubPath = queryPath ?: "/"

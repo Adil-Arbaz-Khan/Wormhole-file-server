@@ -18,8 +18,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.EditOff
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Lock
@@ -27,10 +29,13 @@ import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.UploadFile
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -51,6 +56,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jarvis.fileserver.model.ServerConfig
@@ -86,6 +92,9 @@ fun SettingsBottomSheet(
     var username by remember { mutableStateOf(currentConfig.authUsername) }
     var password by remember { mutableStateOf(currentConfig.authPassword) }
     var clipboardEnabled by remember { mutableStateOf(currentConfig.clipboardEnabled) }
+    var readOnly by remember { mutableStateOf(currentConfig.readOnly) }
+    var uploadDisabled by remember { mutableStateOf(currentConfig.uploadDisabled) }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     val sheetBg = if (isDarkTheme) Slate900 else LightSurface
     val textPrimary = if (isDarkTheme) Color.White else LightTextPrimary
@@ -228,6 +237,119 @@ fun SettingsBottomSheet(
                 }
             }
 
+            // Security & Restrictions Section
+            Text(
+                text = "ACCESS & RESTRICTIONS",
+                style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.2.sp, fontWeight = FontWeight.Bold),
+                color = textSecondary
+            )
+
+            // Read Only Mode Toggle
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .background(
+                                if (readOnly) accentColor.copy(alpha = 0.15f) else (if (isDarkTheme) Slate800 else LightSurfaceElevated),
+                                RoundedCornerShape(10.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.EditOff,
+                            contentDescription = null,
+                            tint = if (readOnly) accentColor else textSecondary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Column {
+                        Text(
+                            text = "Read Only",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = textPrimary
+                        )
+                        Text(
+                            text = "Prevents file modification, rename, or deletion from browser",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = textSecondary
+                        )
+                    }
+                }
+
+                Switch(
+                    checked = readOnly,
+                    onCheckedChange = { readOnly = it },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = accentColor,
+                        uncheckedThumbColor = textSecondary,
+                        uncheckedTrackColor = if (isDarkTheme) Slate800 else LightBorder
+                    )
+                )
+            }
+
+            // Prevent File Upload Toggle
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .background(
+                                if (uploadDisabled) accentColor.copy(alpha = 0.15f) else (if (isDarkTheme) Slate800 else LightSurfaceElevated),
+                                RoundedCornerShape(10.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CloudOff,
+                            contentDescription = null,
+                            tint = if (uploadDisabled) accentColor else textSecondary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Column {
+                        Text(
+                            text = "Prevent File Upload",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = textPrimary
+                        )
+                        Text(
+                            text = "Blocks uploading files from web browsers",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = textSecondary
+                        )
+                    }
+                }
+
+                Switch(
+                    checked = uploadDisabled,
+                    onCheckedChange = { uploadDisabled = it },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = accentColor,
+                        uncheckedThumbColor = textSecondary,
+                        uncheckedTrackColor = if (isDarkTheme) Slate800 else LightBorder
+                    )
+                )
+            }
+
             // Shared Clipboard Section
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -334,7 +456,16 @@ fun SettingsBottomSheet(
                     leadingIcon = {
                         Icon(imageVector = Icons.Default.Lock, contentDescription = null, tint = accentColor)
                     },
-                    visualTransformation = PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                                tint = textSecondary
+                            )
+                        }
+                    },
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     singleLine = true,
                     enabled = !isServerRunning,
                     modifier = Modifier.fillMaxWidth(),
@@ -355,7 +486,9 @@ fun SettingsBottomSheet(
                             basicAuthEnabled = authEnabled,
                             authUsername = username,
                             authPassword = password,
-                            clipboardEnabled = clipboardEnabled
+                            clipboardEnabled = clipboardEnabled,
+                            readOnly = readOnly,
+                            uploadDisabled = uploadDisabled
                         )
                     )
                     onDismiss()

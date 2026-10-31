@@ -31,6 +31,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _clipboardEnabled = MutableStateFlow(prefs.getBoolean("pref_clipboard_enabled", false))
     val clipboardEnabled: StateFlow<Boolean> = _clipboardEnabled.asStateFlow()
 
+    private val _readOnly = MutableStateFlow(prefs.getBoolean("pref_read_only", false))
+    val readOnly: StateFlow<Boolean> = _readOnly.asStateFlow()
+
+    private val _uploadDisabled = MutableStateFlow(prefs.getBoolean("pref_upload_disabled", false))
+    val uploadDisabled: StateFlow<Boolean> = _uploadDisabled.asStateFlow()
+
     val clipboardItems: StateFlow<List<ClipboardItem>> = ClipboardRepository.items
     val unreadClipboardCount: StateFlow<Int> = ClipboardRepository.unreadCount
 
@@ -46,7 +52,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             basicAuthEnabled = prefs.getBoolean("pref_auth_enabled", false),
             authUsername = prefs.getString("pref_auth_user", "admin") ?: "admin",
             authPassword = prefs.getString("pref_auth_pass", "stark123") ?: "stark123",
-            clipboardEnabled = prefs.getBoolean("pref_clipboard_enabled", false)
+            clipboardEnabled = prefs.getBoolean("pref_clipboard_enabled", false),
+            readOnly = prefs.getBoolean("pref_read_only", false),
+            uploadDisabled = prefs.getBoolean("pref_upload_disabled", false)
         )
     )
     val config: StateFlow<ServerConfig> = _config.asStateFlow()
@@ -137,6 +145,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun updateConfig(newConfig: ServerConfig) {
         _config.value = newConfig
         _clipboardEnabled.value = newConfig.clipboardEnabled
+        _readOnly.value = newConfig.readOnly
+        _uploadDisabled.value = newConfig.uploadDisabled
         prefs.edit()
             .putInt("pref_port", newConfig.port)
             .putString("pref_root_path", newConfig.rootPath)
@@ -144,7 +154,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             .putString("pref_auth_user", newConfig.authUsername)
             .putString("pref_auth_pass", newConfig.authPassword)
             .putBoolean("pref_clipboard_enabled", newConfig.clipboardEnabled)
+            .putBoolean("pref_read_only", newConfig.readOnly)
+            .putBoolean("pref_upload_disabled", newConfig.uploadDisabled)
             .apply()
+
+        val app = getApplication<Application>()
+        if (serverState.value is ServerState.Running) {
+            HttpServerService.startService(app, newConfig)
+        }
     }
 
     fun setSharedPath(path: String) {

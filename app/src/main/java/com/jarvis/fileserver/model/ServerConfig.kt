@@ -9,5 +9,7 @@ data class ServerConfig(
     val basicAuthEnabled: Boolean = false,
     val authUsername: String = "admin",
     val authPassword: String = "stark123",
-    val clipboardEnabled: Boolean = false
+    val clipboardEnabled: Boolean = false,
+    val readOnly: Boolean = false,
+    val uploadDisabled: Boolean = false
 )

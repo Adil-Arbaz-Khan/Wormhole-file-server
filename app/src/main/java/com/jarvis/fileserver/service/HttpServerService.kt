@@ -60,6 +60,8 @@ class HttpServerService : Service() {
         const val EXTRA_USERNAME = "EXTRA_USERNAME"
         const val EXTRA_PASSWORD = "EXTRA_PASSWORD"
         const val EXTRA_CLIPBOARD_ENABLED = "EXTRA_CLIPBOARD_ENABLED"
+        const val EXTRA_READ_ONLY = "EXTRA_READ_ONLY"
+        const val EXTRA_UPLOAD_DISABLED = "EXTRA_UPLOAD_DISABLED"
 
         private val _serverState = MutableStateFlow<ServerState>(ServerState.Idle)
         val serverState: StateFlow<ServerState> = _serverState.asStateFlow()
@@ -80,6 +82,8 @@ class HttpServerService : Service() {
                 putExtra(EXTRA_USERNAME, config.authUsername)
                 putExtra(EXTRA_PASSWORD, config.authPassword)
                 putExtra(EXTRA_CLIPBOARD_ENABLED, config.clipboardEnabled)
+                putExtra(EXTRA_READ_ONLY, config.readOnly)
+                putExtra(EXTRA_UPLOAD_DISABLED, config.uploadDisabled)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
@@ -129,7 +133,9 @@ class HttpServerService : Service() {
                     basicAuthEnabled = intent.getBooleanExtra(EXTRA_AUTH_ENABLED, false),
                     authUsername = intent.getStringExtra(EXTRA_USERNAME) ?: "admin",
                     authPassword = intent.getStringExtra(EXTRA_PASSWORD) ?: "",
-                    clipboardEnabled = intent.getBooleanExtra(EXTRA_CLIPBOARD_ENABLED, false)
+                    clipboardEnabled = intent.getBooleanExtra(EXTRA_CLIPBOARD_ENABLED, false),
+                    readOnly = intent.getBooleanExtra(EXTRA_READ_ONLY, false),
+                    uploadDisabled = intent.getBooleanExtra(EXTRA_UPLOAD_DISABLED, false)
                 )
                 _currentConfig.value = config
                 startServerAndTunnel(config)

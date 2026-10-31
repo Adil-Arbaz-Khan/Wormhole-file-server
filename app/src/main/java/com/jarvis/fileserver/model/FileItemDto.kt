@@ -30,7 +30,9 @@ data class ServerStatusResponse(
     val rootPath: String,
     val freeSpaceBytes: Long,
     val totalSpaceBytes: Long,
-    val clipboardEnabled: Boolean = false
+    val clipboardEnabled: Boolean = false,
+    val readOnly: Boolean = false,
+    val uploadDisabled: Boolean = false
 )
 
 @Serializable

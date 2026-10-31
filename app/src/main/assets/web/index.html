@@ -310,6 +310,58 @@
 
         }
 
+        .badge-readonly {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 0.35rem;
+
+            padding: 0.2rem 0.55rem;
+
+            border-radius: 9999px;
+
+            background: rgba(251, 191, 36, 0.15);
+
+            color: var(--warning);
+
+            font-size: 0.725rem;
+
+            font-weight: 600;
+
+        }
+
+        .badge-readonly::before {
+
+            content: '';
+
+            width: 6px;
+
+            height: 6px;
+
+            border-radius: 50%;
+
+            background-color: var(--warning);
+
+            box-shadow: 0 0 8px var(--warning);
+
+        }
+
+        .dropzone-disabled {
+
+            opacity: 0.65;
+
+            cursor: not-allowed !important;
+
+            border-style: dashed !important;
+
+            border-color: var(--border-color) !important;
+
+            background: rgba(148, 163, 184, 0.05) !important;
+
+        }
+
 
 
         .theme-toggle-btn {
@@ -2482,6 +2534,8 @@
 
                     <span class="badge-live">ONLINE</span>
 
+                    <span class="badge-readonly" id="badge-readonly" style="display: none;">READ ONLY</span>
+
                     <span id="disk-info">Loading...</span>
 
                 </div>
@@ -2592,7 +2646,7 @@
 
                 <!-- Create Folder -->
 
-                <button class="btn" onclick="openNewFolderModal()" title="Create New Folder">
+                <button class="btn" id="btn-new-folder" onclick="openNewFolderModal()" title="Create New Folder">
 
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
 
@@ -2622,7 +2676,7 @@
 
         <!-- Upload Dropzone -->
 
-        <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
+        <div class="dropzone" id="dropzone" onclick="onDropzoneClick()">
 
             <input type="file" id="file-input" multiple style="display: none;" onchange="handleFileSelect(this.files)">
 
@@ -2636,7 +2690,7 @@
 
             </svg>
 
-            <div style="font-weight: 600; margin-top: 0.35rem;">Tap or drop files here to upload to phone</div>
+            <div id="dropzone-label" style="font-weight: 600; margin-top: 0.35rem;">Tap or drop files here to upload to phone</div>
 
             <p id="target-dir-label">Uploading to: /</p>
 
@@ -3004,6 +3058,10 @@
 
         let currentDirectory = "/";
 
+        let isReadOnly = false;
+
+        let isUploadDisabled = false;
+
         let rawItems = [];
 
         let displayedItems = [];
@@ -3197,6 +3255,40 @@
                     const data = await res.json();
 
                     serverRootPath = data.rootPath || "";
+
+                    isReadOnly = !!data.readOnly;
+
+                    isUploadDisabled = !!data.uploadDisabled || isReadOnly;
+
+                    const roBadge = document.getElementById("badge-readonly");
+
+                    if (roBadge) roBadge.style.display = isReadOnly ? "inline-flex" : "none";
+
+                    const mkdirBtn = document.getElementById("btn-new-folder");
+
+                    if (mkdirBtn) mkdirBtn.style.display = isReadOnly ? "none" : "inline-flex";
+
+                    const dz = document.getElementById("dropzone");
+
+                    const dzLabel = document.getElementById("dropzone-label");
+
+                    if (dz) {
+
+                        if (isUploadDisabled) {
+
+                            dz.classList.add("dropzone-disabled");
+
+                            if (dzLabel) dzLabel.innerText = isReadOnly ? "Uploads disabled (Read-Only Mode)" : "File uploads disabled by host";
+
+                        } else {
+
+                            dz.classList.remove("dropzone-disabled");
+
+                            if (dzLabel) dzLabel.innerText = "Tap or drop files here to upload to phone";
+
+                        }
+
+                    }
 
                     if (serverRootPath && !serverRootPath.endsWith("/0") && !serverRootPath.endsWith("/emulated/0")) {
 
@@ -3644,23 +3736,25 @@
 
                 renameBtn.onclick = () => openRenameModal(item);
 
-                actionDiv.appendChild(renameBtn);
+                if (!isReadOnly) {
 
+                    actionDiv.appendChild(renameBtn);
 
+                    // Delete icon button
 
-                // Delete icon button
+                    const delBtn = document.createElement("button");
 
-                const delBtn = document.createElement("button");
+                    delBtn.className = "btn-icon-sm btn-del";
 
-                delBtn.className = "btn-icon-sm btn-del";
+                    delBtn.title = "Delete";
 
-                delBtn.title = "Delete";
+                    delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
 
-                delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+                    delBtn.onclick = () => openDeleteModal(item);
 
-                delBtn.onclick = () => openDeleteModal(item);
+                    actionDiv.appendChild(delBtn);
 
-                actionDiv.appendChild(delBtn);
+                }
 
 
 
@@ -3858,29 +3952,31 @@
 
                 };
 
-                actions.appendChild(renameBtn);
+                if (!isReadOnly) {
 
+                    actions.appendChild(renameBtn);
 
+                    // Delete icon button
 
-                // Delete icon button
+                    const delBtn = document.createElement("button");
 
-                const delBtn = document.createElement("button");
+                    delBtn.className = "btn-icon-sm btn-del";
 
-                delBtn.className = "btn-icon-sm btn-del";
+                    delBtn.title = "Delete";
 
-                delBtn.title = "Delete";
+                    delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
 
-                delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+                    delBtn.onclick = (e) => {
 
-                delBtn.onclick = (e) => {
+                        e.stopPropagation();
 
-                    e.stopPropagation();
+                        openDeleteModal(item);
 
-                    openDeleteModal(item);
+                    };
 
-                };
+                    actions.appendChild(delBtn);
 
-                actions.appendChild(delBtn);
+                }
 
 
 
@@ -3943,6 +4039,8 @@
 
 
         async function submitRename() {
+
+            if (isReadOnly) { showToast("Server is in read-only mode", "warning"); return; }
 
             if (!itemToRename) return;
 
@@ -4065,6 +4163,8 @@
 
 
         async function submitDelete() {
+
+            if (isReadOnly) { showToast("Server is in read-only mode", "warning"); return; }
 
             if (!itemToDelete) return;
 
@@ -4232,13 +4332,19 @@
 
 
 
-            filenameEl.innerText = item.name;
+            filenameEl.innerText = isReadOnly ? `Viewing: ${item.name}` : item.name;
 
             textarea.value = "Loading file content...";
 
             textarea.disabled = true;
 
-            statusBar.innerText = "Fetching...";
+            statusBar.innerText = isReadOnly ? "Read-Only Mode" : "Fetching...";
+
+            const saveBtn = document.getElementById("editor-save-btn");
+
+            if (saveBtn) saveBtn.style.display = isReadOnly ? "none" : "inline-flex";
+
+            textarea.readOnly = isReadOnly;
 
             modal.style.display = "flex";
 
@@ -4344,7 +4450,7 @@
 
         async function submitSaveFile() {
 
-            if (!editingItem) return;
+            if (!editingItem || isReadOnly) return;
 
             const btn = document.getElementById("editor-save-btn");
 
@@ -4882,6 +4988,22 @@
 
         // Dropzone & Upload Handler
 
+                function onDropzoneClick() {
+
+            if (isUploadDisabled) {
+
+                showToast(isReadOnly ? "Server is in read-only mode" : "File uploads disabled by host", "warning");
+
+                return;
+
+            }
+
+            document.getElementById('file-input').click();
+
+        }
+
+
+
         function setupDropzone() {
 
             const dz = document.getElementById("dropzone");
@@ -5019,6 +5141,14 @@
 
 
         function handleFileSelect(files) {
+
+            if (isUploadDisabled) {
+
+                showToast(isReadOnly ? "Server is in read-only mode" : "File uploads disabled by host", "warning");
+
+                return;
+
+            }
 
             if (!files || files.length === 0) return;
 
