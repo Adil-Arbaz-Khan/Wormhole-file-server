@@ -1,0 +1,47 @@
+com.jarvis.fileserver.app-animation-core-release-0 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\045ff45d5a893a1d5d35db0fff98eb7f\transformed\animation-core-release\res
+com.jarvis.fileserver.app-lifecycle-runtime-ktx-release-1 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\0bb27eecccc4a96cc370bff8ba9b39e9\transformed\lifecycle-runtime-ktx-release\res
+com.jarvis.fileserver.app-core-1.13.1-2 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\1391e98f7ff3c6874f91e9920d986f0a\transformed\core-1.13.1\res
+com.jarvis.fileserver.app-core-runtime-2.2.0-3 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\170794fa0216d8c4a410bcc9109c3183\transformed\core-runtime-2.2.0\res
+com.jarvis.fileserver.app-lifecycle-viewmodel-savedstate-2.8.6-4 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\177486ba9940721eefa542dc2fe7e36a\transformed\lifecycle-viewmodel-savedstate-2.8.6\res
+com.jarvis.fileserver.app-ui-geometry-release-5 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\1b8c0f3700bf80554a6647a6f2bd4321\transformed\ui-geometry-release\res
+com.jarvis.fileserver.app-material-ripple-release-6 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\1bc1e5e35bf68d2b1d038b87939d2580\transformed\material-ripple-release\res
+com.jarvis.fileserver.app-customview-poolingcontainer-1.0.0-7 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\20b4e9f085dc46c4043bc3d1e9789c9c\transformed\customview-poolingcontainer-1.0.0\res
+com.jarvis.fileserver.app-ui-util-release-8 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\2b3e0d89a1fa47c98fc522d6429fc20e\transformed\ui-util-release\res
+com.jarvis.fileserver.app-savedstate-ktx-1.2.1-9 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\2fba57514dee4fc4da3b8d37856db6a1\transformed\savedstate-ktx-1.2.1\res
+com.jarvis.fileserver.app-ui-release-10 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\45ca82a4dd2700179033bdd55c559dce\transformed\ui-release\res
+com.jarvis.fileserver.app-ui-unit-release-11 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\48a0dae9553ef7707932dc0fc942a1d9\transformed\ui-unit-release\res
+com.jarvis.fileserver.app-foundation-release-12 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\49a27f96a29cdb1b925f79ba273de6f5\transformed\foundation-release\res
+com.jarvis.fileserver.app-foundation-layout-release-13 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\5741275dbe04d2afd2f971bfef2641ca\transformed\foundation-layout-release\res
+com.jarvis.fileserver.app-activity-ktx-1.9.3-14 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\58a6c0c225910ca2d97e17125264582a\transformed\activity-ktx-1.9.3\res
+com.jarvis.fileserver.app-lifecycle-livedata-core-2.8.6-15 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\5b56b43a0e7076069588d482c449c135\transformed\lifecycle-livedata-core-2.8.6\res
+com.jarvis.fileserver.app-lifecycle-viewmodel-compose-release-16 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\5f6319945f5d1e2132faceee20f3f84a\transformed\lifecycle-viewmodel-compose-release\res
+com.jarvis.fileserver.app-annotation-experimental-1.4.1-17 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\63a90d5f15dc14bc54d8d089bcfc0b0c\transformed\annotation-experimental-1.4.1\res
+com.jarvis.fileserver.app-lifecycle-process-2.8.6-18 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\63ae95362969d5d6a267c9c095aa26d9\transformed\lifecycle-process-2.8.6\res
+com.jarvis.fileserver.app-activity-compose-1.9.3-19 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\76ff1054fce4f765e957a29fbc5dd57b\transformed\activity-compose-1.9.3\res
+com.jarvis.fileserver.app-graphics-path-1.0.1-20 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\822ed8390b0779b94191b71a1d503f37\transformed\graphics-path-1.0.1\res
+com.jarvis.fileserver.app-ui-graphics-release-21 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\85f6a90dea90150e50a794e7830f8bfc\transformed\ui-graphics-release\res
+com.jarvis.fileserver.app-ui-tooling-preview-release-22 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\865279795a7f880218f457d47319a579\transformed\ui-tooling-preview-release\res
+com.jarvis.fileserver.app-core-ktx-1.13.1-23 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\88be81d1aa280d9ac29814720b92d3dc\transformed\core-ktx-1.13.1\res
+com.jarvis.fileserver.app-runtime-saveable-release-24 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\8daf2e69600721655e271cc01d38ddaa\transformed\runtime-saveable-release\res
+com.jarvis.fileserver.app-runtime-release-25 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\967048015610b8445021d98e331d4f18\transformed\runtime-release\res
+com.jarvis.fileserver.app-lifecycle-runtime-compose-release-26 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\9d39beee51349ecb1c7083e27fc8cde9\transformed\lifecycle-runtime-compose-release\res
+com.jarvis.fileserver.app-profileinstaller-1.3.1-27 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\9fa0c68ed56af9ea4ab2072f7006caee\transformed\profileinstaller-1.3.1\res
+com.jarvis.fileserver.app-ui-text-release-28 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\a7aaa72ee6a73c3ea5efc850d6cc1bd0\transformed\ui-text-release\res
+com.jarvis.fileserver.app-material3-release-29 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\b1423f2dcc057a83174378956f5bc6b8\transformed\material3-release\res
+com.jarvis.fileserver.app-activity-1.9.3-30 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\b976531d028d5506b5b559c08afba9c6\transformed\activity-1.9.3\res
+com.jarvis.fileserver.app-savedstate-1.2.1-31 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\bb608366aaf6b1f538468a152892ec9e\transformed\savedstate-1.2.1\res
+com.jarvis.fileserver.app-material-icons-extended-release-32 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\c2596a99a46ddcb4b20ae55f4f9acaf6\transformed\material-icons-extended-release\res
+com.jarvis.fileserver.app-emoji2-1.3.0-33 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\cc5e1a7ff84ee0f5989f177729690616\transformed\emoji2-1.3.0\res
+com.jarvis.fileserver.app-animation-release-34 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\d149e99ed78c8008cf21abcebf1729ff\transformed\animation-release\res
+com.jarvis.fileserver.app-lifecycle-viewmodel-release-35 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\dc76f644adbb40666fcec1034878c0a4\transformed\lifecycle-viewmodel-release\res
+com.jarvis.fileserver.app-lifecycle-runtime-release-36 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\eda7378420ffc47d9419541ba5861bc1\transformed\lifecycle-runtime-release\res
+com.jarvis.fileserver.app-lifecycle-viewmodel-ktx-2.8.6-37 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\f037f7f9c36fffe2f50154e038174d8e\transformed\lifecycle-viewmodel-ktx-2.8.6\res
+com.jarvis.fileserver.app-material-icons-core-release-38 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\f228133dd579a77f85514e7c81c6ce18\transformed\material-icons-core-release\res
+com.jarvis.fileserver.app-startup-runtime-1.1.1-39 C:\Users\Aspire 7\.gradle\caches\8.9\transforms\f57c1fe1c86893f7428e4c207c0b5ceb\transformed\startup-runtime-1.1.1\res
+com.jarvis.fileserver.app-resValues-40 D:\VS_code\file-server\app\build\generated\res\resValues\release
+com.jarvis.fileserver.app-packageReleaseResources-41 D:\VS_code\file-server\app\build\intermediates\incremental\release\packageReleaseResources\merged.dir
+com.jarvis.fileserver.app-packageReleaseResources-42 D:\VS_code\file-server\app\build\intermediates\incremental\release\packageReleaseResources\stripped.dir
+com.jarvis.fileserver.app-merged-not-compiled-resources-43 D:\VS_code\file-server\app\build\intermediates\merged-not-compiled-resources\release
+com.jarvis.fileserver.app-release-44 D:\VS_code\file-server\app\build\intermediates\merged_res\release\mergeReleaseResources
+com.jarvis.fileserver.app-main-45 D:\VS_code\file-server\app\src\main\res
+com.jarvis.fileserver.app-release-46 D:\VS_code\file-server\app\src\release\res

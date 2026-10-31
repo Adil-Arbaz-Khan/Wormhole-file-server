@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background_dark">#FF090D16</color>
+    <color name="black">#FF000000</color>
+    <color name="ic_launcher_background">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <string name="app_name">Wormhole</string>
+    <string name="notification_channel_desc">Shows background server and tunnel status</string>
+    <string name="notification_channel_id">file_server_channel</string>
+    <string name="notification_channel_name">Wormhole Service</string>
+    <style name="Theme.JarvisFileServer" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#FF0B1120</item>
+        <item name="android:navigationBarColor">#FF0B1120</item>
+        <item name="android:windowBackground">@color/background_dark</item>
+    </style>
+</resources>

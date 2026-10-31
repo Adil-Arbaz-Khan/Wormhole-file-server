@@ -1,0 +1,4 @@
+#Sat Oct 31 23:56:41 IST 2026
+base.0=D\:\\VS_code\\file-server\\app\\build\\intermediates\\dex\\release\\minifyReleaseWithR8\\classes.dex
+renamed.0=classes.dex
+path.0=classes.dex

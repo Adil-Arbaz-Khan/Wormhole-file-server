@@ -1,0 +1,5240 @@
+<!DOCTYPE html>
+
+<html lang="en" data-theme="dark">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+    <title>Wormhole - Storage Hub</title>
+
+    <link id="favicon-link" rel="icon" type="image/png" href="/favicon.png">
+
+    <link rel="apple-touch-icon" href="/favicon.png">
+
+    <style>
+
+        :root {
+
+            --bg-primary: #0b1120;
+
+            --bg-secondary: #131c31;
+
+            --bg-card: #1e293b;
+
+            --border-color: #334155;
+
+            --text-primary: #f8fafc;
+
+            --text-secondary: #94a3b8;
+
+            --accent: #38bdf8;
+
+            --accent-glow: rgba(56, 189, 248, 0.25);
+
+            --success: #34d399;
+
+            --warning: #fbbf24;
+
+            --danger: #f87171;
+
+            --radius: 12px;
+
+            --table-hover: rgba(56, 189, 248, 0.05);
+
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+
+        }
+
+
+
+        html[data-theme="light"] {
+
+            --bg-primary: #f8fafc;
+
+            --bg-secondary: #ffffff;
+
+            --bg-card: #f1f5f9;
+
+            --border-color: #cbd5e1;
+
+            --text-primary: #0f172a;
+
+            --text-secondary: #64748b;
+
+            --accent: #0284c7;
+
+            --accent-glow: rgba(2, 132, 199, 0.2);
+
+            --success: #10b981;
+
+            --warning: #f59e0b;
+
+            --danger: #ef4444;
+
+            --table-hover: rgba(2, 132, 199, 0.06);
+
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+
+        }
+
+
+
+        * {
+
+            box-sizing: border-box;
+
+            margin: 0;
+
+            padding: 0;
+
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+
+            -webkit-tap-highlight-color: transparent;
+
+        }
+
+
+
+        button, a, select, input {
+
+            touch-action: manipulation;
+
+        }
+
+
+
+        body {
+
+            background-color: var(--bg-primary);
+
+            color: var(--text-primary);
+
+            min-height: 100vh;
+
+            display: flex;
+
+            flex-direction: column;
+
+            overflow-x: hidden;
+
+        }
+
+
+
+        header {
+
+            background: var(--bg-secondary);
+
+            backdrop-filter: blur(12px);
+
+            border-bottom: 1px solid var(--border-color);
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 50;
+
+            padding: 0.85rem 1.5rem;
+
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+        }
+
+
+
+        .header-container {
+
+            max-width: 1280px;
+
+            margin: 0 auto;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            flex-wrap: wrap;
+
+            gap: 0.75rem;
+
+        }
+
+
+
+        .brand {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 0.75rem;
+
+        }
+
+
+
+        .brand-logo-img {
+
+            width: 52px;
+
+            height: 52px;
+
+            object-fit: contain;
+
+            filter: drop-shadow(0 0 14px rgba(56, 189, 248, 0.45));
+
+            flex-shrink: 0;
+
+            transition: transform 0.25s ease, filter 0.25s ease;
+
+        }
+
+
+
+        .brand-logo-img:hover {
+
+            transform: scale(1.08) rotate(4deg);
+
+            filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.75));
+
+        }
+
+
+
+        html[data-theme="light"] .brand-logo-img {
+
+            filter: drop-shadow(0 3px 10px rgba(0, 0, 0, 0.35));
+
+        }
+
+
+
+        html[data-theme="light"] .brand-logo-img:hover {
+
+            transform: scale(1.08) rotate(4deg);
+
+            filter: drop-shadow(0 4px 18px rgba(2, 132, 199, 0.5));
+
+        }
+
+
+
+        .brand h1 {
+
+            font-size: 1.25rem;
+
+            font-weight: 700;
+
+            letter-spacing: -0.01em;
+
+            color: var(--text-primary);
+
+            line-height: 1.2;
+
+        }
+
+
+
+        .header-actions {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 0.75rem;
+
+        }
+
+
+
+        .storage-status {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 0.6rem;
+
+            font-size: 0.825rem;
+
+            color: var(--text-secondary);
+
+        }
+
+
+
+        .badge-live {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 0.35rem;
+
+            padding: 0.2rem 0.55rem;
+
+            border-radius: 9999px;
+
+            background: rgba(52, 211, 153, 0.15);
+
+            color: var(--success);
+
+            font-size: 0.725rem;
+
+            font-weight: 600;
+
+        }
+
+
+
+        .badge-live::before {
+
+            content: '';
+
+            width: 6px;
+
+            height: 6px;
+
+            border-radius: 50%;
+
+            background-color: var(--success);
+
+            box-shadow: 0 0 8px var(--success);
+
+        }
+
+
+
+        .theme-toggle-btn {
+
+            background: var(--bg-card);
+
+            border: 1px solid var(--border-color);
+
+            color: var(--text-primary);
+
+            width: 36px;
+
+            height: 36px;
+
+            border-radius: 8px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            cursor: pointer;
+
+            flex-shrink: 0;
+
+        }
+
+
+
+        .theme-toggle-btn:hover {
+
+            border-color: var(--accent);
+
+        }
+
+
+
+        /* Shared Clipboard Nav Button */
+
+        .clipboard-nav-btn {
+
+            background: var(--bg-card);
+
+            border: 1px solid var(--border-color);
+
+            color: var(--text-primary);
+
+            height: 36px;
+
+            padding: 0 0.75rem;
+
+            border-radius: 8px;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 0.45rem;
+
+            cursor: pointer;
+
+            flex-shrink: 0;
+
+            font-size: 0.825rem;
+
+            font-weight: 600;
+
+            transition: all 0.2s ease;
+
+        }
+
+
+
+        .clipboard-nav-btn:hover {
+
+            border-color: var(--accent);
+
+            color: var(--accent);
+
+            transform: translateY(-1px);
+
+        }
+
+
+
+        .clipboard-count-badge {
+
+            background: #ef4444;
+
+            color: white;
+
+            font-size: 0.65rem;
+
+            font-weight: 700;
+
+            padding: 0.12rem 0.4rem;
+
+            border-radius: 9999px;
+
+            line-height: 1;
+
+        }
+
+
+
+        /* Clipboard Modal & Cards */
+
+        .clip-item-card {
+
+            background: var(--bg-secondary);
+
+            border: 1px solid var(--border-color);
+
+            border-radius: 8px;
+
+            padding: 0.75rem;
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 0.5rem;
+
+            transition: border-color 0.2s ease;
+
+        }
+
+
+
+        .clip-item-card:hover {
+
+            border-color: var(--accent);
+
+        }
+
+
+
+        .clip-item-header {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+        }
+
+
+
+        .clip-badge-phone {
+
+            background: rgba(16, 185, 129, 0.15);
+
+            color: #10b981;
+
+            font-size: 0.65rem;
+
+            font-weight: 700;
+
+            padding: 0.15rem 0.45rem;
+
+            border-radius: 4px;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 0.25rem;
+
+        }
+
+
+
+        .clip-badge-web {
+
+            background: rgba(14, 165, 233, 0.15);
+
+            color: #38bdf8;
+
+            font-size: 0.65rem;
+
+            font-weight: 700;
+
+            padding: 0.15rem 0.45rem;
+
+            border-radius: 4px;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 0.25rem;
+
+        }
+
+
+
+        .clip-item-body {
+
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+            font-size: 0.825rem;
+
+            background: var(--bg-primary);
+
+            padding: 0.55rem 0.75rem;
+
+            border-radius: 6px;
+
+            white-space: pre-wrap;
+
+            word-break: break-all;
+
+            color: var(--text-primary);
+
+            max-height: 140px;
+
+            overflow-y: auto;
+
+            user-select: text;
+
+        }
+
+
+
+        .clip-action-btn {
+
+            background: transparent;
+
+            border: 1px solid var(--border-color);
+
+            color: var(--text-secondary);
+
+            border-radius: 4px;
+
+            padding: 0.2rem 0.5rem;
+
+            font-size: 0.75rem;
+
+            cursor: pointer;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 0.25rem;
+
+            transition: all 0.15s ease;
+
+        }
+
+
+
+        .clip-action-btn:hover {
+
+            border-color: var(--accent);
+
+            color: var(--accent);
+
+        }
+
+
+
+        .clip-action-btn.copied {
+
+            border-color: #10b981;
+
+            color: #10b981;
+
+            background: rgba(16, 185, 129, 0.1);
+
+        }
+
+
+
+        main {
+
+            max-width: 1280px;
+
+            margin: 0 auto;
+
+            padding: 1.5rem;
+
+            width: 100%;
+
+            flex: 1;
+
+        }
+
+
+
+        /* Breadcrumbs - horizontally scrollable on mobile */
+
+        .breadcrumbs-bar {
+
+            background-color: var(--bg-secondary);
+
+            border: 1px solid var(--border-color);
+
+            border-radius: var(--radius);
+
+            padding: 0.75rem 1rem;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 0.5rem;
+
+            margin-bottom: 1.25rem;
+
+            font-size: 0.875rem;
+
+            overflow-x: auto;
+
+            white-space: nowrap;
+
+            flex-wrap: nowrap;
+
+            -webkit-overflow-scrolling: touch;
+
+            scrollbar-width: none;
+
+        }
+
+
+
+        .breadcrumbs-bar::-webkit-scrollbar {
+
+            display: none;
+
+        }
+
+
+
+        .crumb-item {
+
+            color: var(--accent);
+
+            cursor: pointer;
+
+            text-decoration: none;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            font-weight: 500;
+
+            flex-shrink: 0;
+
+        }
+
+
+
+        .crumb-item:hover {
+
+            text-decoration: underline;
+
+        }
+
+
+
+        .crumb-sep {
+
+            color: var(--text-secondary);
+
+            flex-shrink: 0;
+
+        }
+
+
+
+        /* Controls Bar */
+
+        .controls-bar {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 0.75rem;
+
+            margin-bottom: 1.25rem;
+
+            flex-wrap: wrap;
+
+        }
+
+
+
+        .search-box {
+
+            position: relative;
+
+            flex: 1;
+
+            min-width: 220px;
+
+            max-width: 380px;
+
+        }
+
+
+
+        .search-box input {
+
+            width: 100%;
+
+            background-color: var(--bg-secondary);
+
+            border: 1px solid var(--border-color);
+
+            border-radius: var(--radius);
+
+            padding: 0.6rem 1rem 0.6rem 2.4rem;
+
+            color: var(--text-primary);
+
+            font-size: 0.875rem;
+
+            outline: none;
+
+        }
+
+
+
+        .search-box input:focus {
+
+            border-color: var(--accent);
+
+            box-shadow: 0 0 0 2px var(--accent-glow);
+
+        }
+
+
+
+        .search-box svg {
+
+            position: absolute;
+
+            left: 0.85rem;
+
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            fill: var(--text-secondary);
+
+            width: 16px;
+
+            height: 16px;
+
+        }
+
+
+
+        .filter-group {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 0.5rem;
+
+            flex-wrap: wrap;
+
+        }
+
+
+
+        .select-styled {
+
+            background: var(--bg-secondary);
+
+            border: 1px solid var(--border-color);
+
+            color: var(--text-primary);
+
+            padding: 0.55rem 0.85rem;
+
+            border-radius: var(--radius);
+
+            font-size: 0.85rem;
+
+            font-weight: 500;
+
+            outline: none;
+
+            cursor: pointer;
+
+        }
+
+
+
+        .select-styled:focus {
+
+            border-color: var(--accent);
+
+        }
+
+
+
+        .view-btn-group {
+
+            display: flex;
+
+            background: var(--bg-secondary);
+
+            border: 1px solid var(--border-color);
+
+            border-radius: var(--radius);
+
+            overflow: hidden;
+
+            flex-shrink: 0;
+
+        }
+
+
+
+        .view-btn {
+
+            background: transparent;
+
+            border: none;
+
+            color: var(--text-secondary);
+
+            padding: 0.5rem 0.75rem;
+
+            cursor: pointer;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+        }
+
+
+
+        .view-btn.active {
+
+            background: var(--bg-card);
+
+            color: var(--accent);
+
+        }
+
+
+
+        .btn {
+
+            background: var(--bg-secondary);
+
+            border: 1px solid var(--border-color);
+
+            color: var(--text-primary);
+
+            padding: 0.55rem 0.85rem;
+
+            border-radius: var(--radius);
+
+            font-size: 0.85rem;
+
+            font-weight: 500;
+
+            cursor: pointer;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 0.4rem;
+
+            white-space: nowrap;
+
+        }
+
+
+
+        .btn:hover {
+
+            border-color: var(--accent);
+
+            background: var(--bg-card);
+
+        }
+
+
+
+        .btn-accent {
+
+            background: linear-gradient(135deg, #0284c7, #38bdf8);
+
+            border: none;
+
+            color: #ffffff;
+
+            font-weight: 600;
+
+        }
+
+
+
+        .btn-accent:hover {
+
+            opacity: 0.95;
+
+            box-shadow: 0 0 12px var(--accent-glow);
+
+        }
+
+
+
+        .btn-danger {
+
+            background: #ef4444;
+
+            border: none;
+
+            color: #ffffff;
+
+            font-weight: 600;
+
+        }
+
+
+
+        .btn-danger:hover {
+
+            background: #dc2626;
+
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+
+        }
+
+
+
+        /* Icon action buttons */
+
+        .btn-icon-sm {
+
+            padding: 0.35rem;
+
+            width: 32px;
+
+            height: 32px;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border-radius: 7px;
+
+            background: var(--bg-card);
+
+            border: 1px solid var(--border-color);
+
+            color: var(--text-secondary);
+
+            cursor: pointer;
+
+            transition: all 0.15s ease;
+
+            text-decoration: none;
+
+            flex-shrink: 0;
+
+        }
+
+
+
+        .btn-icon-sm:hover {
+
+            color: var(--text-primary);
+
+            border-color: var(--accent);
+
+            background: var(--bg-secondary);
+
+        }
+
+
+
+        .btn-icon-sm.btn-del:hover {
+
+            color: #ef4444;
+
+            border-color: #ef4444;
+
+            background: rgba(239, 68, 68, 0.12);
+
+        }
+
+
+
+        /* Upload Dropzone */
+
+        .dropzone {
+
+            background: var(--bg-secondary);
+
+            border: 2px dashed var(--border-color);
+
+            border-radius: var(--radius);
+
+            padding: 1.5rem;
+
+            text-align: center;
+
+            margin-bottom: 1.25rem;
+
+            cursor: pointer;
+
+            transition: border-color 0.15s, background-color 0.15s;
+
+        }
+
+
+
+        .dropzone.dragover {
+
+            border-color: var(--accent);
+
+            background: var(--table-hover);
+
+        }
+
+
+
+        .dropzone p {
+
+            color: var(--text-secondary);
+
+            margin-top: 0.35rem;
+
+            font-size: 0.85rem;
+
+            word-break: break-all;
+
+        }
+
+
+
+        .upload-status-text {
+
+            font-size: 0.85rem;
+
+            margin-top: 0.5rem;
+
+            font-weight: 500;
+
+        }
+
+
+
+        .progress-container {
+
+            width: 100%;
+
+            background: var(--bg-card);
+
+            border-radius: 9999px;
+
+            height: 7px;
+
+            overflow: hidden;
+
+            margin-top: 0.75rem;
+
+            display: none;
+
+        }
+
+
+
+        .progress-bar {
+
+            height: 100%;
+
+            width: 0%;
+
+            background: linear-gradient(90deg, #0284c7, #34d399);
+
+            transition: width 0.15s ease;
+
+        }
+
+
+
+        /* Table View */
+
+        .table-container {
+
+            background-color: var(--bg-secondary);
+
+            border: 1px solid var(--border-color);
+
+            border-radius: var(--radius);
+
+            overflow-x: auto;
+
+            box-shadow: var(--card-shadow);
+
+            -webkit-overflow-scrolling: touch;
+
+        }
+
+
+
+        table {
+
+            width: 100%;
+
+            border-collapse: collapse;
+
+            text-align: left;
+
+            min-width: 520px;
+
+        }
+
+
+
+        thead {
+
+            background-color: var(--bg-card);
+
+            border-bottom: 1px solid var(--border-color);
+
+        }
+
+
+
+        th {
+
+            padding: 0.75rem 1rem;
+
+            font-size: 0.75rem;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.05em;
+
+            color: var(--text-secondary);
+
+            font-weight: 600;
+
+            user-select: none;
+
+        }
+
+
+
+        tbody tr {
+
+            border-bottom: 1px solid var(--border-color);
+
+            transition: background 0.15s;
+
+        }
+
+
+
+        tbody tr:last-child {
+
+            border-bottom: none;
+
+        }
+
+
+
+        tbody tr:hover {
+
+            background-color: var(--table-hover);
+
+        }
+
+
+
+        td {
+
+            padding: 0.75rem 1rem;
+
+            font-size: 0.875rem;
+
+            vertical-align: middle;
+
+        }
+
+
+
+        .file-name-cell {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 0.75rem;
+
+            cursor: pointer;
+
+            color: var(--text-primary);
+
+            font-weight: 500;
+
+            overflow: hidden;
+
+        }
+
+
+
+        .file-name-cell span {
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+
+            white-space: nowrap;
+
+        }
+
+
+
+        .file-name-cell:hover {
+
+            color: var(--accent);
+
+        }
+
+
+
+        .icon-box {
+
+            width: 32px;
+
+            height: 32px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border-radius: 7px;
+
+            flex-shrink: 0;
+
+        }
+
+
+
+        .action-btns {
+
+            display: flex;
+
+            gap: 0.4rem;
+
+            justify-content: flex-end;
+
+            align-items: center;
+
+            flex-wrap: nowrap;
+
+        }
+
+
+
+        /* Grid View */
+
+        .grid-container {
+
+            display: grid;
+
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+
+            gap: 1rem;
+
+        }
+
+
+
+        .grid-card {
+
+            background: var(--bg-secondary);
+
+            border: 1px solid var(--border-color);
+
+            border-radius: var(--radius);
+
+            padding: 1rem;
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 0.65rem;
+
+            cursor: pointer;
+
+            box-shadow: var(--card-shadow);
+
+            transition: transform 0.15s, border-color 0.15s;
+
+            position: relative;
+
+        }
+
+
+
+        .grid-card:hover {
+
+            border-color: var(--accent);
+
+            transform: translateY(-2px);
+
+        }
+
+
+
+        .grid-icon-wrap {
+
+            height: 60px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+        }
+
+
+
+        .grid-icon-wrap svg {
+
+            width: 42px;
+
+            height: 42px;
+
+        }
+
+
+
+        .grid-details {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 0.2rem;
+
+            overflow: hidden;
+
+        }
+
+
+
+        .grid-name {
+
+            font-size: 0.85rem;
+
+            font-weight: 600;
+
+            white-space: nowrap;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+
+            color: var(--text-primary);
+
+        }
+
+
+
+        .grid-sub {
+
+            font-size: 0.725rem;
+
+            color: var(--text-secondary);
+
+            display: flex;
+
+            justify-content: space-between;
+
+        }
+
+
+
+        .grid-actions {
+
+            margin-top: auto;
+
+            display: flex;
+
+            gap: 0.35rem;
+
+            justify-content: flex-end;
+
+            align-items: center;
+
+            padding-top: 0.5rem;
+
+            border-top: 1px solid var(--border-color);
+
+            flex-wrap: nowrap;
+
+        }
+
+
+
+        /* Modals & Dialogs */
+
+        .modal {
+
+            position: fixed;
+
+            top: 0;
+
+            left: 0;
+
+            width: 100%;
+
+            height: 100%;
+
+            background: rgba(0, 0, 0, 0.75);
+
+            backdrop-filter: blur(8px);
+
+            z-index: 100;
+
+            display: none;
+
+            align-items: center;
+
+            justify-content: center;
+
+            padding: 1.5rem;
+
+        }
+
+
+
+        .modal-content {
+
+            background: var(--bg-secondary);
+
+            border: 1px solid var(--border-color);
+
+            border-radius: var(--radius);
+
+            max-width: 900px;
+
+            width: 100%;
+
+            overflow: hidden;
+
+            display: flex;
+
+            flex-direction: column;
+
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+
+            animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+        }
+
+
+
+        .modal-dialog {
+
+            max-width: 480px;
+
+            width: 100%;
+
+            background: var(--bg-secondary);
+
+            border: 1px solid var(--border-color);
+
+            border-radius: var(--radius);
+
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+
+            display: flex;
+
+            flex-direction: column;
+
+            overflow: hidden;
+
+            animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+        }
+
+
+
+        .modal-dialog-lg {
+
+            max-width: 980px;
+
+            width: 95%;
+
+            height: 85vh;
+
+            background: var(--bg-secondary);
+
+            border: 1px solid var(--border-color);
+
+            border-radius: var(--radius);
+
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+
+            display: flex;
+
+            flex-direction: column;
+
+            overflow: hidden;
+
+            animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+        }
+
+
+
+        @keyframes modalFadeIn {
+
+            from {
+
+                opacity: 0;
+
+                transform: scale(0.96) translateY(8px);
+
+            }
+
+            to {
+
+                opacity: 1;
+
+                transform: scale(1) translateY(0);
+
+            }
+
+        }
+
+
+
+        .modal-header {
+
+            padding: 0.85rem 1.25rem;
+
+            border-bottom: 1px solid var(--border-color);
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+        }
+
+
+
+        .dialog-body {
+
+            padding: 1.25rem;
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 1rem;
+
+        }
+
+
+
+        .dialog-footer {
+
+            padding: 0.85rem 1.25rem;
+
+            border-top: 1px solid var(--border-color);
+
+            display: flex;
+
+            justify-content: flex-end;
+
+            gap: 0.75rem;
+
+            background: var(--bg-primary);
+
+        }
+
+
+
+        .form-label {
+
+            font-size: 0.75rem;
+
+            font-weight: 600;
+
+            color: var(--text-secondary);
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.05em;
+
+        }
+
+
+
+        .form-input {
+
+            width: 100%;
+
+            background-color: var(--bg-primary);
+
+            border: 1px solid var(--border-color);
+
+            border-radius: 8px;
+
+            padding: 0.65rem 0.9rem;
+
+            color: var(--text-primary);
+
+            font-size: 0.9rem;
+
+            outline: none;
+
+            transition: border-color 0.15s, box-shadow 0.15s;
+
+        }
+
+
+
+        .form-input:focus {
+
+            border-color: var(--accent);
+
+            box-shadow: 0 0 0 2px var(--accent-glow);
+
+        }
+
+
+
+        .editor-textarea {
+
+            width: 100%;
+
+            flex: 1;
+
+            background: var(--bg-primary);
+
+            color: var(--text-primary);
+
+            border: 1px solid var(--border-color);
+
+            border-radius: 8px;
+
+            padding: 1rem;
+
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+            font-size: 0.875rem;
+
+            line-height: 1.5;
+
+            resize: none;
+
+            outline: none;
+
+            tab-size: 4;
+
+            white-space: pre;
+
+            overflow-wrap: normal;
+
+            overflow-x: auto;
+
+        }
+
+
+
+        .editor-textarea:focus {
+
+            border-color: var(--accent);
+
+        }
+
+
+
+        .editor-status-bar {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            font-size: 0.75rem;
+
+            color: var(--text-secondary);
+
+            padding: 0.35rem 0.5rem 0 0.5rem;
+
+        }
+
+
+
+        .modal-body {
+
+            padding: 1rem;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            background: #000;
+
+            min-height: 280px;
+
+        }
+
+
+
+        .modal-body video,
+
+        .modal-body audio {
+
+            width: 100%;
+
+            max-height: 70vh;
+
+            outline: none;
+
+        }
+
+
+
+        .modal-body img {
+
+            max-width: 100%;
+
+            max-height: 70vh;
+
+            object-fit: contain;
+
+        }
+
+
+
+        .close-btn {
+
+            background: transparent;
+
+            border: none;
+
+            color: var(--text-secondary);
+
+            font-size: 1.35rem;
+
+            cursor: pointer;
+
+            line-height: 1;
+
+        }
+
+
+
+        .close-btn:hover {
+
+            color: var(--text-primary);
+
+        }
+
+
+
+        .empty-view {
+
+            text-align: center;
+
+            padding: 3rem 1rem;
+
+            color: var(--text-secondary);
+
+        }
+
+
+
+        /* Toast Notifications */
+
+        .toast-container {
+
+            position: fixed;
+
+            bottom: 1.5rem;
+
+            right: 1.5rem;
+
+            z-index: 200;
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 0.5rem;
+
+            pointer-events: none;
+
+        }
+
+
+
+        .toast {
+
+            background: var(--bg-card);
+
+            border: 1px solid var(--border-color);
+
+            color: var(--text-primary);
+
+            padding: 0.75rem 1.15rem;
+
+            border-radius: var(--radius);
+
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+
+            font-size: 0.85rem;
+
+            font-weight: 500;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 0.6rem;
+
+            pointer-events: auto;
+
+            animation: toastSlideUp 0.25s ease-out;
+
+            max-width: 400px;
+
+        }
+
+
+
+        .toast.toast-success {
+
+            border-color: var(--success);
+
+        }
+
+
+
+        .toast.toast-error {
+
+            border-color: var(--danger);
+
+            color: var(--danger);
+
+        }
+
+
+
+        @keyframes toastSlideUp {
+
+            from {
+
+                opacity: 0;
+
+                transform: translateY(12px);
+
+            }
+
+            to {
+
+                opacity: 1;
+
+                transform: translateY(0);
+
+            }
+
+        }
+
+
+
+        /* Whole-page drag & drop overlay */
+
+        .fullscreen-drop-overlay {
+
+            position: fixed;
+
+            top: 0;
+
+            left: 0;
+
+            width: 100vw;
+
+            height: 100vh;
+
+            background: rgba(11, 17, 32, 0.85);
+
+            backdrop-filter: blur(12px);
+
+            z-index: 9999;
+
+            display: none;
+
+            align-items: center;
+
+            justify-content: center;
+
+            pointer-events: none;
+
+            transition: opacity 0.2s ease;
+
+        }
+
+
+
+        html[data-theme="light"] .fullscreen-drop-overlay {
+
+            background: rgba(248, 250, 252, 0.88);
+
+        }
+
+
+
+        .fullscreen-drop-overlay.active {
+
+            display: flex;
+
+            pointer-events: auto;
+
+        }
+
+
+
+        .fullscreen-drop-box {
+
+            border: 3px dashed var(--accent);
+
+            background: var(--bg-card);
+
+            border-radius: 24px;
+
+            padding: 3rem 4rem;
+
+            text-align: center;
+
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+
+            transform: scale(0.97);
+
+            transition: transform 0.18s ease, border-color 0.18s ease;
+
+            max-width: 90%;
+
+            pointer-events: none;
+
+        }
+
+
+
+        .fullscreen-drop-overlay * {
+
+            pointer-events: none;
+
+        }
+
+
+
+        .fullscreen-drop-overlay.dragover .fullscreen-drop-box {
+
+            transform: scale(1.02);
+
+            border-color: var(--success);
+
+        }
+
+
+
+        /* Responsive Mobile Optimizations */
+
+        @media (max-width: 640px) {
+
+            header {
+
+                padding: 0.65rem 1rem;
+
+            }
+
+
+
+            .brand-logo-img {
+
+                width: 42px;
+
+                height: 42px;
+
+            }
+
+
+
+            .brand h1 {
+
+                font-size: 1.1rem;
+
+            }
+
+
+
+            .brand div:last-child {
+
+                display: none; /* Hide subtitle on narrow mobile screens */
+
+            }
+
+
+
+            .storage-status {
+
+                font-size: 0.75rem;
+
+            }
+
+
+
+            .clipboard-btn-label {
+
+                display: none;
+
+            }
+
+
+
+            #disk-info {
+
+                max-width: 130px;
+
+                overflow: hidden;
+
+                text-overflow: ellipsis;
+
+                white-space: nowrap;
+
+            }
+
+
+
+            main {
+
+                padding: 0.85rem;
+
+            }
+
+
+
+            .controls-bar {
+
+                flex-direction: column;
+
+                align-items: stretch;
+
+                gap: 0.6rem;
+
+                margin-bottom: 0.85rem;
+
+            }
+
+
+
+            .search-box {
+
+                max-width: 100%;
+
+                width: 100%;
+
+                min-width: unset;
+
+            }
+
+
+
+            .search-box input {
+
+                padding: 0.65rem 0.85rem 0.65rem 2.3rem;
+
+                font-size: 16px; /* Prevents auto-zoom on mobile */
+
+            }
+
+
+
+            .filter-group {
+
+                display: flex;
+
+                flex-wrap: wrap;
+
+                gap: 0.4rem;
+
+                width: 100%;
+
+            }
+
+
+
+            .select-styled {
+
+                flex: 1 1 130px;
+
+                padding: 0.55rem 0.6rem;
+
+                font-size: 0.8rem;
+
+            }
+
+
+
+            .filter-group .btn {
+
+                flex: 1 1 auto;
+
+                justify-content: center;
+
+                padding: 0.55rem 0.65rem;
+
+                font-size: 0.8rem;
+
+            }
+
+
+
+            .dropzone {
+
+                padding: 1rem 0.75rem;
+
+                margin-bottom: 0.85rem;
+
+            }
+
+
+
+            .dropzone svg {
+
+                width: 26px;
+
+                height: 26px;
+
+            }
+
+
+
+            .dropzone div {
+
+                font-size: 0.825rem;
+
+            }
+
+
+
+            /* Responsive 2-column mobile grid */
+
+            .grid-container {
+
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+
+                gap: 0.65rem;
+
+            }
+
+
+
+            .grid-card {
+
+                padding: 0.75rem;
+
+                gap: 0.5rem;
+
+            }
+
+
+
+            .grid-icon-wrap {
+
+                height: 48px;
+
+            }
+
+
+
+            .grid-icon-wrap svg {
+
+                width: 34px;
+
+                height: 34px;
+
+            }
+
+
+
+            .grid-name {
+
+                font-size: 0.8rem;
+
+            }
+
+
+
+            .grid-sub {
+
+                font-size: 0.7rem;
+
+            }
+
+
+
+            .btn-icon-sm {
+
+                width: 28px;
+
+                height: 28px;
+
+                padding: 0.25rem;
+
+            }
+
+
+
+            .btn-icon-sm svg {
+
+                width: 13px;
+
+                height: 13px;
+
+            }
+
+
+
+            /* Mobile table view */
+
+            table {
+
+                min-width: 100%;
+
+            }
+
+
+
+            table th:nth-child(3), table td:nth-child(3) {
+
+                display: none; /* Hide Modified column on small screens */
+
+            }
+
+
+
+            table th:nth-child(1), table td:nth-child(1) {
+
+                width: 52%;
+
+            }
+
+
+
+            table th:nth-child(2), table td:nth-child(2) {
+
+                width: 20%;
+
+                font-size: 0.75rem;
+
+            }
+
+
+
+            table th:nth-child(4), table td:nth-child(4) {
+
+                width: 28%;
+
+            }
+
+
+
+            td, th {
+
+                padding: 0.6rem 0.5rem;
+
+            }
+
+
+
+            .file-name-cell {
+
+                gap: 0.5rem;
+
+                font-size: 0.8rem;
+
+            }
+
+
+
+            .icon-box {
+
+                width: 26px;
+
+                height: 26px;
+
+            }
+
+
+
+            /* Mobile Modals */
+
+            .modal {
+
+                padding: 0.75rem;
+
+            }
+
+
+
+            .modal-dialog {
+
+                width: 100%;
+
+                max-width: 100%;
+
+            }
+
+
+
+            .modal-dialog-lg {
+
+                width: 100%;
+
+                max-width: 100%;
+
+                height: 92vh;
+
+            }
+
+
+
+            .dialog-body {
+
+                padding: 1rem;
+
+            }
+
+
+
+            .dialog-footer {
+
+                padding: 0.75rem 1rem;
+
+            }
+
+
+
+            .form-input {
+
+                font-size: 16px; /* Prevents auto-zoom on mobile */
+
+                padding: 0.65rem 0.75rem;
+
+            }
+
+
+
+            .editor-textarea {
+
+                font-size: 14px;
+
+                padding: 0.75rem;
+
+            }
+
+
+
+            .toast-container {
+
+                bottom: 1rem;
+
+                right: 1rem;
+
+                left: 1rem;
+
+            }
+
+
+
+            .toast {
+
+                max-width: 100%;
+
+                font-size: 0.8rem;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+
+
+    <!-- Fullscreen Whole-Page Drag & Drop Overlay -->
+
+    <div id="fullscreen-drop-overlay" class="fullscreen-drop-overlay">
+
+        <div class="fullscreen-drop-box">
+
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+
+                <polyline points="17 8 12 3 7 8"></polyline>
+
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+
+            </svg>
+
+            <div style="font-size: 1.45rem; font-weight: 700; color: var(--text-primary); margin-top: 1rem;">Drop files anywhere to upload</div>
+
+            <p style="font-size: 0.9rem; color: var(--accent); margin-top: 0.5rem; font-weight: 500;" id="overlay-target-label">Uploading to: /</p>
+
+        </div>
+
+    </div>
+
+
+
+    <header>
+
+        <div class="header-container">
+
+            <div class="brand">
+
+                <img id="brand-logo" src="/logo.png" alt="Wormhole" class="brand-logo-img">
+
+                <div>
+
+                    <h1>Wormhole</h1>
+
+                    <div style="font-size: 0.725rem; color: var(--text-secondary);">Direct HTTP Stream &amp; File Gateway</div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="header-actions">
+
+                <div class="storage-status">
+
+                    <span class="badge-live">ONLINE</span>
+
+                    <span id="disk-info">Loading...</span>
+
+                </div>
+
+                <button class="clipboard-nav-btn" id="clipboard-nav-btn" onclick="openClipboardModal()" title="Shared Clipboard" style="display: none;">
+
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+
+                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+
+                    </svg>
+
+                    <span class="clipboard-btn-label">Clipboard</span>
+
+                    <span class="clipboard-count-badge" id="clipboard-count-badge" style="display: none;">0</span>
+
+                </button>
+
+                <button class="theme-toggle-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle Light/Dark Theme">
+
+                    <svg id="theme-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+
+                    </svg>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+
+    <main>
+
+        <!-- Breadcrumbs -->
+
+        <div class="breadcrumbs-bar" id="breadcrumbs">
+
+            <span class="crumb-item" onclick="loadDirectory('/')">Internal Storage</span>
+
+        </div>
+
+
+
+        <!-- Controls Bar -->
+
+        <div class="controls-bar">
+
+            <div class="search-box">
+
+                <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+
+                <input type="text" id="search-input" placeholder="Filter files..." oninput="handleSearch()">
+
+            </div>
+
+
+
+            <div class="filter-group">
+
+                <!-- Sort Dropdown -->
+
+                <select class="select-styled" id="sort-select" onchange="applySorting()">
+
+                    <option value="name-asc">Name (A to Z)</option>
+
+                    <option value="name-desc">Name (Z to A)</option>
+
+                    <option value="size-desc">Size (Largest first)</option>
+
+                    <option value="size-asc">Size (Smallest first)</option>
+
+                    <option value="date-desc">Date (Newest first)</option>
+
+                    <option value="date-asc">Date (Oldest first)</option>
+
+                    <option value="type">Type / Format</option>
+
+                </select>
+
+
+
+                <!-- View Switcher -->
+
+                <div class="view-btn-group">
+
+                    <button class="view-btn active" id="btn-list-view" onclick="setViewMode('list')" title="Table View">
+
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+
+                    </button>
+
+                    <button class="view-btn" id="btn-grid-view" onclick="setViewMode('grid')" title="Grid View">
+
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+
+                    </button>
+
+                </div>
+
+
+
+                <!-- Create Folder -->
+
+                <button class="btn" onclick="openNewFolderModal()" title="Create New Folder">
+
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+
+                    New Folder
+
+                </button>
+
+
+
+                <!-- Refresh -->
+
+                <button class="btn" onclick="refreshCurrentDirectory()" title="Refresh files">
+
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+
+                    Refresh
+
+                </button>
+
+
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Upload Dropzone -->
+
+        <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
+
+            <input type="file" id="file-input" multiple style="display: none;" onchange="handleFileSelect(this.files)">
+
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+
+                <polyline points="17 8 12 3 7 8"></polyline>
+
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+
+            </svg>
+
+            <div style="font-weight: 600; margin-top: 0.35rem;">Tap or drop files here to upload to phone</div>
+
+            <p id="target-dir-label">Uploading to: /</p>
+
+            <div class="upload-status-text" id="upload-status-msg" style="display: none;"></div>
+
+            <div class="progress-container" id="upload-progress-container">
+
+                <div class="progress-bar" id="upload-progress-bar"></div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- File Container: Table View -->
+
+        <div class="table-container" id="table-view">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Name</th>
+
+                        <th>Size</th>
+
+                        <th>Modified</th>
+
+                        <th style="text-align: right;">Actions</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="file-list-body"></tbody>
+
+            </table>
+
+        </div>
+
+
+
+        <!-- File Container: Grid View -->
+
+        <div class="grid-container" id="grid-view" style="display: none;"></div>
+
+
+
+        <div class="empty-view" id="empty-state" style="display: none;">
+
+            <p>This directory is empty.</p>
+
+        </div>
+
+    </main>
+
+
+
+    <!-- Modal Media Player -->
+
+    <div class="modal" id="media-modal" onclick="closeModalOnBackdrop(event)">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <div id="modal-title" style="font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 80%;">Media Viewer</div>
+
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+
+            </div>
+
+            <div class="modal-body" id="modal-body"></div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- Modal Rename -->
+
+    <div class="modal" id="rename-modal" onclick="closeModalOnBackdrop(event)">
+
+        <div class="modal-dialog">
+
+            <div class="modal-header">
+
+                <span style="font-weight: 600;">Rename Item</span>
+
+                <button class="close-btn" onclick="closeRenameModal()">&times;</button>
+
+            </div>
+
+            <div class="dialog-body">
+
+                <div>
+
+                    <label class="form-label" for="rename-input">New Name</label>
+
+                    <input type="text" id="rename-input" class="form-input" style="margin-top: 0.4rem;" onkeydown="if(event.key==='Enter') submitRename()">
+
+                </div>
+
+            </div>
+
+            <div class="dialog-footer">
+
+                <button class="btn" onclick="closeRenameModal()">Cancel</button>
+
+                <button class="btn btn-accent" id="rename-confirm-btn" onclick="submitRename()">Rename</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- Modal Delete Confirmation -->
+
+    <div class="modal" id="delete-modal" onclick="closeModalOnBackdrop(event)">
+
+        <div class="modal-dialog">
+
+            <div class="modal-header">
+
+                <span style="font-weight: 600; color: var(--danger);">Confirm Deletion</span>
+
+                <button class="close-btn" onclick="closeDeleteModal()">&times;</button>
+
+            </div>
+
+            <div class="dialog-body">
+
+                <p id="delete-warning-text" style="font-size: 0.9rem; line-height: 1.5;">Are you sure you want to delete this item? This action is permanent and cannot be undone.</p>
+
+                <div id="delete-item-name" style="font-weight: 600; padding: 0.5rem 0.75rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; word-break: break-all;"></div>
+
+            </div>
+
+            <div class="dialog-footer">
+
+                <button class="btn" onclick="closeDeleteModal()">Cancel</button>
+
+                <button class="btn btn-danger" id="delete-confirm-btn" onclick="submitDelete()">Delete</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- Modal Create Folder -->
+
+    <div class="modal" id="mkdir-modal" onclick="closeModalOnBackdrop(event)">
+
+        <div class="modal-dialog">
+
+            <div class="modal-header">
+
+                <span style="font-weight: 600;">Create New Folder</span>
+
+                <button class="close-btn" onclick="closeMkdirModal()">&times;</button>
+
+            </div>
+
+            <div class="dialog-body">
+
+                <div style="font-size: 0.8rem; color: var(--text-secondary);" id="mkdir-path-label">Location: /</div>
+
+                <div>
+
+                    <label class="form-label" for="mkdir-input">Folder Name</label>
+
+                    <input type="text" id="mkdir-input" class="form-input" placeholder="e.g. Documents, Backups" style="margin-top: 0.4rem;" onkeydown="if(event.key==='Enter') submitMkdir()">
+
+                </div>
+
+            </div>
+
+            <div class="dialog-footer">
+
+                <button class="btn" onclick="closeMkdirModal()">Cancel</button>
+
+                <button class="btn btn-accent" id="mkdir-confirm-btn" onclick="submitMkdir()">Create Folder</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- Modal File Editor -->
+
+    <div class="modal" id="editor-modal" onclick="closeModalOnBackdrop(event)">
+
+        <div class="modal-dialog-lg">
+
+            <div class="modal-header">
+
+                <div style="display: flex; align-items: center; gap: 0.5rem; overflow: hidden; max-width: 80%;">
+
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+
+                    <span id="editor-filename" style="font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">Editing File</span>
+
+                </div>
+
+                <button class="close-btn" onclick="closeEditorModal()">&times;</button>
+
+            </div>
+
+            <div class="dialog-body" style="flex: 1; padding: 1rem; overflow: hidden; display: flex; flex-direction: column;">
+
+                <textarea id="editor-content" class="editor-textarea" spellcheck="false" placeholder="Loading file content..."></textarea>
+
+                <div class="editor-status-bar">
+
+                    <span id="editor-file-info">Lines: 0 | Chars: 0</span>
+
+                    <span id="editor-save-status">Ready</span>
+
+                </div>
+
+            </div>
+
+            <div class="dialog-footer">
+
+                <button class="btn" onclick="closeEditorModal()">Close</button>
+
+                <button class="btn btn-accent" id="editor-save-btn" onclick="submitSaveFile()">
+
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+
+                    Save Changes
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- Modal Shared Clipboard -->
+
+    <div class="modal" id="clipboard-modal" onclick="closeModalOnBackdrop(event)">
+
+        <div class="modal-dialog" style="max-width: 580px;">
+
+            <div class="modal-header">
+
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
+
+                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+
+                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+
+                    </svg>
+
+                    <span style="font-weight: 600;">Shared Clipboard</span>
+
+                </div>
+
+                <button class="close-btn" onclick="closeClipboardModal()">&times;</button>
+
+            </div>
+
+            <div class="dialog-body" style="gap: 1.25rem; display: flex; flex-direction: column;">
+
+                <div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+
+                        <label class="form-label" for="clipboard-input" style="margin: 0;">Send Text to Phone</label>
+
+                        <button class="btn btn-sm" onclick="pasteFromWebClipboard()" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
+
+                            📋 Paste
+
+                        </button>
+
+                    </div>
+
+                    <textarea id="clipboard-input" class="form-input" rows="3" placeholder="Paste or type text, link, or note to send to phone..." style="width: 100%; resize: vertical; min-height: 70px; font-family: inherit; font-size: 0.9rem;"></textarea>
+
+                    <div style="display: flex; justify-content: flex-end; margin-top: 0.6rem;">
+
+                        <button class="btn btn-accent" onclick="submitClipboardText()">
+
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.35rem;">
+
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+
+                            </svg>
+
+                            Send to Phone
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+
+                <div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+
+                        <span style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; color: var(--text-secondary); text-transform: uppercase;">Recent Clips</span>
+
+                        <button class="btn btn-sm" id="clipboard-clear-btn" onclick="clearAllClips()" style="display: none; padding: 0.2rem 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">
+
+                            Clear All
+
+                        </button>
+
+                    </div>
+
+                    <div id="clipboard-clips-container" style="display: flex; flex-direction: column; gap: 0.6rem; max-height: 280px; overflow-y: auto; padding-right: 0.2rem;">
+
+                        <!-- dynamic items -->
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="dialog-footer">
+
+                <button class="btn" onclick="closeClipboardModal()">Close</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- Toast Notification Container -->
+
+    <div class="toast-container" id="toast-container"></div>
+
+
+
+    <script>
+
+        let currentDirectory = "/";
+
+        let rawItems = [];
+
+        let displayedItems = [];
+
+        let viewMode = localStorage.getItem("wormhole_view_mode") || "list";
+
+        let currentTheme = localStorage.getItem("wormhole_theme") || "dark";
+
+
+
+        document.addEventListener("DOMContentLoaded", () => {
+
+            initTheme();
+
+            setViewMode(viewMode);
+
+            fetchStatus();
+
+            loadDirectory("/");
+
+            setupDropzone();
+
+            setupWholePageDragAndDrop();
+
+            setupEditorEvents();
+
+            setInterval(fetchStatus, 4000);
+
+            document.addEventListener("keydown", (e) => {
+
+                if (e.key === "Escape") closeAllModals();
+
+            });
+
+        });
+
+
+
+        // Theme management
+
+        function initTheme() {
+
+            document.documentElement.setAttribute("data-theme", currentTheme);
+
+            updateThemeVisuals();
+
+        }
+
+
+
+        function toggleTheme() {
+
+            currentTheme = currentTheme === "dark" ? "light" : "dark";
+
+            document.documentElement.setAttribute("data-theme", currentTheme);
+
+            localStorage.setItem("wormhole_theme", currentTheme);
+
+            updateThemeVisuals();
+
+        }
+
+
+
+        function updateThemeVisuals() {
+
+            updateThemeIcon();
+
+            const logo = document.getElementById("brand-logo");
+
+            if (logo) {
+
+                logo.src = (currentTheme === "light" ? "/logo_dark.png" : "/logo.png") + "?t=" + currentTheme;
+
+            }
+
+            const fav = document.getElementById("favicon-link");
+
+            if (fav) {
+
+                fav.href = (currentTheme === "light" ? "/favicon.png?mode=light&v=" : "/favicon.png?mode=dark&v=") + Date.now();
+
+            }
+
+        }
+
+
+
+        function updateThemeIcon() {
+
+            const icon = document.getElementById("theme-icon");
+
+            if (currentTheme === "dark") {
+
+                icon.innerHTML = `<path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>`;
+
+            } else {
+
+                icon.innerHTML = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>`;
+
+            }
+
+        }
+
+
+
+        // View Mode (List vs Grid)
+
+        function setViewMode(mode) {
+
+            viewMode = mode;
+
+            localStorage.setItem("wormhole_view_mode", mode);
+
+            document.getElementById("btn-list-view").classList.toggle("active", mode === "list");
+
+            document.getElementById("btn-grid-view").classList.toggle("active", mode === "grid");
+
+            document.getElementById("table-view").style.display = mode === "list" ? "block" : "none";
+
+            document.getElementById("grid-view").style.display = mode === "grid" ? "grid" : "none";
+
+            renderFiles();
+
+        }
+
+
+
+        // Toast feedback
+
+        function showToast(message, type = "info") {
+
+            const container = document.getElementById("toast-container");
+
+            const toast = document.createElement("div");
+
+            toast.className = `toast toast-${type}`;
+
+            let iconSvg = "";
+
+            if (type === "success") {
+
+                iconSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+
+            } else if (type === "error") {
+
+                iconSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+
+            } else {
+
+                iconSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+
+            }
+
+            toast.innerHTML = `${iconSvg}<span>${message}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+
+                toast.style.opacity = "0";
+
+                toast.style.transform = "translateY(10px)";
+
+                toast.style.transition = "opacity 0.2s, transform 0.2s";
+
+                setTimeout(() => toast.remove(), 200);
+
+            }, 3200);
+
+        }
+
+
+
+        let serverRootPath = "";
+
+        let serverRootName = "Internal Storage";
+
+
+
+        // Fetch Storage Status
+
+        async function fetchStatus() {
+
+            try {
+
+                const res = await fetch("/api/status");
+
+                if (res.ok) {
+
+                    const data = await res.json();
+
+                    serverRootPath = data.rootPath || "";
+
+                    if (serverRootPath && !serverRootPath.endsWith("/0") && !serverRootPath.endsWith("/emulated/0")) {
+
+                        const parts = serverRootPath.split("/").filter(Boolean);
+
+                        serverRootName = parts.length > 0 ? parts[parts.length - 1] : "Shared";
+
+                    } else {
+
+                        serverRootName = "Internal Storage";
+
+                    }
+
+                    const freeGb = (data.freeSpaceBytes / (1024 ** 3)).toFixed(1);
+
+                    const totalGb = (data.totalSpaceBytes / (1024 ** 3)).toFixed(1);
+
+                    document.getElementById("disk-info").innerText = `${freeGb} GB free of ${totalGb} GB`;
+
+                    updateBreadcrumbs(currentDirectory);
+
+
+
+                    // Shared Clipboard visibility
+
+                    const clipboardBtn = document.getElementById("clipboard-nav-btn");
+
+                    if (data.clipboardEnabled) {
+
+                        if (clipboardBtn) clipboardBtn.style.display = "inline-flex";
+
+                        if (!clipboardPollInterval) {
+
+                            clipboardPollInterval = setInterval(pollClipboard, 3000);
+
+                            pollClipboard();
+
+                        }
+
+                    } else {
+
+                        if (clipboardBtn) clipboardBtn.style.display = "none";
+
+                        closeClipboardModal();
+
+                        if (clipboardPollInterval) {
+
+                            clearInterval(clipboardPollInterval);
+
+                            clipboardPollInterval = null;
+
+                        }
+
+                    }
+
+                }
+
+            } catch (err) {
+
+                console.error("Status error", err);
+
+            }
+
+        }
+
+
+
+        // Load Directory
+
+        async function loadDirectory(path) {
+
+            currentDirectory = path;
+
+            document.getElementById("target-dir-label").innerText = `Uploading to: ${path}`;
+
+            updateBreadcrumbs(path);
+
+            try {
+
+                const res = await fetch(`/api/files?path=${encodeURIComponent(path)}`);
+
+                if (!res.ok) throw new Error("Failed to load directory");
+
+                const data = await res.json();
+
+                rawItems = data.items;
+
+                applySorting();
+
+            } catch (err) {
+
+                showToast("Error loading files: " + err.message, "error");
+
+            }
+
+        }
+
+
+
+        function refreshCurrentDirectory() {
+
+            loadDirectory(currentDirectory);
+
+            fetchStatus();
+
+        }
+
+
+
+        // Breadcrumbs
+
+        function updateBreadcrumbs(path) {
+
+            const container = document.getElementById("breadcrumbs");
+
+            container.innerHTML = "";
+
+
+
+            const rootCrumb = document.createElement("span");
+
+            rootCrumb.className = "crumb-item";
+
+            rootCrumb.innerText = serverRootName;
+
+            rootCrumb.onclick = () => loadDirectory("/");
+
+            container.appendChild(rootCrumb);
+
+
+
+            if (!path || path === "/" || path === "") return;
+
+
+
+            const parts = path.split("/").filter(p => p.length > 0);
+
+            let accum = "";
+
+
+
+            parts.forEach((part) => {
+
+                accum += "/" + part;
+
+                const finalPath = accum;
+
+
+
+                const sep = document.createElement("span");
+
+                sep.className = "crumb-sep";
+
+                sep.innerText = "/";
+
+                container.appendChild(sep);
+
+
+
+                const crumb = document.createElement("span");
+
+                crumb.className = "crumb-item";
+
+                crumb.innerText = part;
+
+                crumb.onclick = () => loadDirectory(finalPath);
+
+                container.appendChild(crumb);
+
+            });
+
+        }
+
+
+
+        // Sorting
+
+        function applySorting() {
+
+            const sortMode = document.getElementById("sort-select").value;
+
+            const query = document.getElementById("search-input").value.toLowerCase();
+
+
+
+            let items = [...rawItems];
+
+            if (query.trim().length > 0) {
+
+                items = items.filter(it => it.name.toLowerCase().includes(query));
+
+            }
+
+
+
+            items.sort((a, b) => {
+
+                if (a.isDirectory !== b.isDirectory) {
+
+                    return a.isDirectory ? -1 : 1;
+
+                }
+
+
+
+                switch (sortMode) {
+
+                    case "name-asc":
+
+                        return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+
+                    case "name-desc":
+
+                        return b.name.localeCompare(a.name, undefined, { numeric: true, sensitivity: 'base' });
+
+                    case "size-desc":
+
+                        return b.size - a.size;
+
+                    case "size-asc":
+
+                        return a.size - b.size;
+
+                    case "date-desc":
+
+                        return b.lastModified - a.lastModified;
+
+                    case "date-asc":
+
+                        return a.lastModified - b.lastModified;
+
+                    case "type":
+
+                        return (a.mimeType || "").localeCompare(b.mimeType || "");
+
+                    default:
+
+                        return 0;
+
+                }
+
+            });
+
+
+
+            displayedItems = items;
+
+            renderFiles();
+
+        }
+
+
+
+        function handleSearch() {
+
+            applySorting();
+
+        }
+
+
+
+        // Render Files
+
+        function renderFiles() {
+
+            const emptyState = document.getElementById("empty-state");
+
+            if (displayedItems.length === 0) {
+
+                emptyState.style.display = "block";
+
+                document.getElementById("file-list-body").innerHTML = "";
+
+                document.getElementById("grid-view").innerHTML = "";
+
+                return;
+
+            }
+
+            emptyState.style.display = "none";
+
+
+
+            if (viewMode === "list") {
+
+                renderTableView(displayedItems);
+
+            } else {
+
+                renderGridView(displayedItems);
+
+            }
+
+        }
+
+
+
+        // Table View Renderer
+
+        function renderTableView(items) {
+
+            const tbody = document.getElementById("file-list-body");
+
+            tbody.innerHTML = "";
+
+
+
+            items.forEach(item => {
+
+                const tr = document.createElement("tr");
+
+
+
+                // Name cell
+
+                const nameTd = document.createElement("td");
+
+                const nameDiv = document.createElement("div");
+
+                nameDiv.className = "file-name-cell";
+
+                nameDiv.appendChild(getFileIcon(item, 18));
+
+
+
+                const label = document.createElement("span");
+
+                label.innerText = item.name;
+
+                nameDiv.appendChild(label);
+
+
+
+                if (item.isDirectory) {
+
+                    nameDiv.onclick = () => loadDirectory(item.relativePath);
+
+                } else if (item.isVideo || item.isAudio || item.isImage) {
+
+                    nameDiv.onclick = () => openMediaModal(item);
+
+                } else if (item.isText) {
+
+                    nameDiv.onclick = () => openEditorModal(item);
+
+                }
+
+                nameTd.appendChild(nameDiv);
+
+                tr.appendChild(nameTd);
+
+
+
+                // Size cell
+
+                const sizeTd = document.createElement("td");
+
+                sizeTd.innerText = item.isDirectory ? "--" : formatBytes(item.size);
+
+                sizeTd.style.color = "var(--text-secondary)";
+
+                tr.appendChild(sizeTd);
+
+
+
+                // Date cell
+
+                const dateTd = document.createElement("td");
+
+                dateTd.innerText = formatDate(item.lastModified);
+
+                dateTd.style.color = "var(--text-secondary)";
+
+                tr.appendChild(dateTd);
+
+
+
+                // Action cell
+
+                const actionTd = document.createElement("td");
+
+                actionTd.style.textAlign = "right";
+
+                const actionDiv = document.createElement("div");
+
+                actionDiv.className = "action-btns";
+
+
+
+
+
+                // Text Edit icon button
+
+                if (!item.isDirectory && item.isText) {
+
+                    const editBtn = document.createElement("button");
+
+                    editBtn.className = "btn-icon-sm";
+
+                    editBtn.title = "Edit file";
+
+                    editBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+
+                    editBtn.onclick = () => openEditorModal(item);
+
+                    actionDiv.appendChild(editBtn);
+
+                }
+
+
+
+                // Download icon button (NO WORD, DOWNLOAD LOGO ONLY)
+
+                if (!item.isDirectory) {
+
+                    const dlBtn = document.createElement("a");
+
+                    dlBtn.className = "btn-icon-sm";
+
+                    dlBtn.title = "Download";
+
+                    dlBtn.href = `/download?path=${encodeURIComponent(item.relativePath)}`;
+
+                    dlBtn.download = item.name;
+
+                    dlBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`;
+
+                    actionDiv.appendChild(dlBtn);
+
+
+
+                }
+
+
+
+                // Rename icon button
+
+                const renameBtn = document.createElement("button");
+
+                renameBtn.className = "btn-icon-sm";
+
+                renameBtn.title = "Rename";
+
+                renameBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`;
+
+                renameBtn.onclick = () => openRenameModal(item);
+
+                actionDiv.appendChild(renameBtn);
+
+
+
+                // Delete icon button
+
+                const delBtn = document.createElement("button");
+
+                delBtn.className = "btn-icon-sm btn-del";
+
+                delBtn.title = "Delete";
+
+                delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+
+                delBtn.onclick = () => openDeleteModal(item);
+
+                actionDiv.appendChild(delBtn);
+
+
+
+                actionTd.appendChild(actionDiv);
+
+                tr.appendChild(actionTd);
+
+                tbody.appendChild(tr);
+
+            });
+
+        }
+
+
+
+        // Grid View Renderer
+
+        function renderGridView(items) {
+
+            const grid = document.getElementById("grid-view");
+
+            grid.innerHTML = "";
+
+
+
+            items.forEach(item => {
+
+                const card = document.createElement("div");
+
+                card.className = "grid-card";
+
+
+
+                // Icon preview
+
+                const iconWrap = document.createElement("div");
+
+                iconWrap.className = "grid-icon-wrap";
+
+                iconWrap.appendChild(getFileIcon(item, 38));
+
+                card.appendChild(iconWrap);
+
+
+
+                // Details
+
+                const details = document.createElement("div");
+
+                details.className = "grid-details";
+
+
+
+                const name = document.createElement("div");
+
+                name.className = "grid-name";
+
+                name.innerText = item.name;
+
+                name.title = item.name;
+
+                details.appendChild(name);
+
+
+
+                const sub = document.createElement("div");
+
+                sub.className = "grid-sub";
+
+                sub.innerHTML = `<span>${item.isDirectory ? "Folder" : formatBytes(item.size)}</span><span>${formatDate(item.lastModified).split(" ")[0]}</span>`;
+
+                details.appendChild(sub);
+
+                card.appendChild(details);
+
+
+
+                if (item.isDirectory) {
+
+                    card.onclick = (e) => {
+
+                        if (!e.target.closest("button") && !e.target.closest("a") && !e.target.closest("svg")) {
+
+                            loadDirectory(item.relativePath);
+
+                        }
+
+                    };
+
+                } else if (item.isVideo || item.isAudio || item.isImage) {
+
+                    card.onclick = (e) => {
+
+                        if (!e.target.closest("button") && !e.target.closest("a") && !e.target.closest("svg")) {
+
+                            openMediaModal(item);
+
+                        }
+
+                    };
+
+                } else if (item.isText) {
+
+                    card.onclick = (e) => {
+
+                        if (!e.target.closest("button") && !e.target.closest("a") && !e.target.closest("svg")) {
+
+                            openEditorModal(item);
+
+                        }
+
+                    };
+
+                }
+
+
+
+                // Actions toolbar
+
+                const actions = document.createElement("div");
+
+                actions.className = "grid-actions";
+
+
+
+                if (!item.isDirectory) {
+
+
+
+                    // Text Edit icon button
+
+                    if (item.isText) {
+
+                        const editBtn = document.createElement("button");
+
+                        editBtn.className = "btn-icon-sm";
+
+                        editBtn.title = "Edit file";
+
+                        editBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+
+                        editBtn.onclick = (e) => {
+
+                            e.stopPropagation();
+
+                            openEditorModal(item);
+
+                        };
+
+                        actions.appendChild(editBtn);
+
+                    }
+
+
+
+                    // Download icon button (NO WORD, DOWNLOAD LOGO ONLY)
+
+                    const dlBtn = document.createElement("a");
+
+                    dlBtn.className = "btn-icon-sm";
+
+                    dlBtn.title = "Download";
+
+                    dlBtn.href = `/download?path=${encodeURIComponent(item.relativePath)}`;
+
+                    dlBtn.download = item.name;
+
+                    dlBtn.onclick = (e) => e.stopPropagation();
+
+                    dlBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`;
+
+                    actions.appendChild(dlBtn);
+
+
+
+                }
+
+
+
+                // Rename icon button
+
+                const renameBtn = document.createElement("button");
+
+                renameBtn.className = "btn-icon-sm";
+
+                renameBtn.title = "Rename";
+
+                renameBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`;
+
+                renameBtn.onclick = (e) => {
+
+                    e.stopPropagation();
+
+                    openRenameModal(item);
+
+                };
+
+                actions.appendChild(renameBtn);
+
+
+
+                // Delete icon button
+
+                const delBtn = document.createElement("button");
+
+                delBtn.className = "btn-icon-sm btn-del";
+
+                delBtn.title = "Delete";
+
+                delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+
+                delBtn.onclick = (e) => {
+
+                    e.stopPropagation();
+
+                    openDeleteModal(item);
+
+                };
+
+                actions.appendChild(delBtn);
+
+
+
+                card.appendChild(actions);
+
+                grid.appendChild(card);
+
+            });
+
+        }
+
+
+
+        // Rename Handlers
+
+        let itemToRename = null;
+
+        function openRenameModal(item) {
+
+            itemToRename = item;
+
+            const modal = document.getElementById("rename-modal");
+
+            const input = document.getElementById("rename-input");
+
+            input.value = item.name;
+
+            modal.style.display = "flex";
+
+            setTimeout(() => {
+
+                input.focus();
+
+                const lastDot = item.name.lastIndexOf(".");
+
+                if (!item.isDirectory && lastDot > 0) {
+
+                    input.setSelectionRange(0, lastDot);
+
+                } else {
+
+                    input.select();
+
+                }
+
+            }, 50);
+
+        }
+
+
+
+        function closeRenameModal() {
+
+            document.getElementById("rename-modal").style.display = "none";
+
+            itemToRename = null;
+
+        }
+
+
+
+        async function submitRename() {
+
+            if (!itemToRename) return;
+
+            const newName = document.getElementById("rename-input").value.trim();
+
+            if (!newName) {
+
+                showToast("Please enter a valid name", "error");
+
+                return;
+
+            }
+
+            if (newName === itemToRename.name) {
+
+                closeRenameModal();
+
+                return;
+
+            }
+
+
+
+            const btn = document.getElementById("rename-confirm-btn");
+
+            btn.disabled = true;
+
+            btn.innerText = "Renaming...";
+
+
+
+            try {
+
+                const res = await fetch("/api/rename", {
+
+                    method: "POST",
+
+                    headers: { "Content-Type": "application/json" },
+
+                    body: JSON.stringify({
+
+                        path: itemToRename.relativePath,
+
+                        newName: newName
+
+                    })
+
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+
+                    showToast(`Renamed to "${newName}"`, "success");
+
+                    closeRenameModal();
+
+                    refreshCurrentDirectory();
+
+                } else {
+
+                    showToast(data.message || "Failed to rename", "error");
+
+                }
+
+            } catch (e) {
+
+                showToast("Network error: " + e.message, "error");
+
+            } finally {
+
+                btn.disabled = false;
+
+                btn.innerText = "Rename";
+
+            }
+
+        }
+
+
+
+        // Delete Handlers
+
+        let itemToDelete = null;
+
+        function openDeleteModal(item) {
+
+            itemToDelete = item;
+
+            const modal = document.getElementById("delete-modal");
+
+            document.getElementById("delete-item-name").innerText = item.name;
+
+            const warning = document.getElementById("delete-warning-text");
+
+            if (item.isDirectory) {
+
+                warning.innerText = `Are you sure you want to permanently delete folder "${item.name}" and all of its contents? This cannot be undone.`;
+
+            } else {
+
+                warning.innerText = `Are you sure you want to permanently delete file "${item.name}"? This cannot be undone.`;
+
+            }
+
+            modal.style.display = "flex";
+
+        }
+
+
+
+        function closeDeleteModal() {
+
+            document.getElementById("delete-modal").style.display = "none";
+
+            itemToDelete = null;
+
+        }
+
+
+
+        async function submitDelete() {
+
+            if (!itemToDelete) return;
+
+            const btn = document.getElementById("delete-confirm-btn");
+
+            btn.disabled = true;
+
+            btn.innerText = "Deleting...";
+
+
+
+            try {
+
+                const res = await fetch(`/api/files?path=${encodeURIComponent(itemToDelete.relativePath)}`, {
+
+                    method: "DELETE"
+
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+
+                    showToast(`Deleted "${itemToDelete.name}"`, "success");
+
+                    closeDeleteModal();
+
+                    refreshCurrentDirectory();
+
+                } else {
+
+                    showToast(data.message || "Failed to delete item", "error");
+
+                }
+
+            } catch (e) {
+
+                showToast("Network error: " + e.message, "error");
+
+            } finally {
+
+                btn.disabled = false;
+
+                btn.innerText = "Delete";
+
+            }
+
+        }
+
+
+
+        // New Folder Handlers
+
+        function openNewFolderModal() {
+
+            const modal = document.getElementById("mkdir-modal");
+
+            document.getElementById("mkdir-path-label").innerText = `Location: ${currentDirectory}`;
+
+            const input = document.getElementById("mkdir-input");
+
+            input.value = "";
+
+            modal.style.display = "flex";
+
+            setTimeout(() => input.focus(), 50);
+
+        }
+
+
+
+        function closeMkdirModal() {
+
+            document.getElementById("mkdir-modal").style.display = "none";
+
+        }
+
+
+
+        async function submitMkdir() {
+
+            const name = document.getElementById("mkdir-input").value.trim();
+
+            if (!name) {
+
+                showToast("Please enter a folder name", "error");
+
+                return;
+
+            }
+
+            const btn = document.getElementById("mkdir-confirm-btn");
+
+            btn.disabled = true;
+
+            btn.innerText = "Creating...";
+
+
+
+            try {
+
+                const res = await fetch("/api/mkdir", {
+
+                    method: "POST",
+
+                    headers: { "Content-Type": "application/json" },
+
+                    body: JSON.stringify({
+
+                        path: currentDirectory,
+
+                        name: name
+
+                    })
+
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+
+                    showToast(`Folder "${name}" created`, "success");
+
+                    closeMkdirModal();
+
+                    refreshCurrentDirectory();
+
+                } else {
+
+                    showToast(data.message || "Failed to create folder", "error");
+
+                }
+
+            } catch (e) {
+
+                showToast("Network error: " + e.message, "error");
+
+            } finally {
+
+                btn.disabled = false;
+
+                btn.innerText = "Create Folder";
+
+            }
+
+        }
+
+
+
+        // File Editor Handlers
+
+        let editingItem = null;
+
+        async function openEditorModal(item) {
+
+            editingItem = item;
+
+            const modal = document.getElementById("editor-modal");
+
+            const filenameEl = document.getElementById("editor-filename");
+
+            const textarea = document.getElementById("editor-content");
+
+            const statusBar = document.getElementById("editor-save-status");
+
+
+
+            filenameEl.innerText = item.name;
+
+            textarea.value = "Loading file content...";
+
+            textarea.disabled = true;
+
+            statusBar.innerText = "Fetching...";
+
+            modal.style.display = "flex";
+
+
+
+            try {
+
+                const res = await fetch(`/download?path=${encodeURIComponent(item.relativePath)}`);
+
+                if (!res.ok) throw new Error("Could not read file content");
+
+                const content = await res.text();
+
+                textarea.value = content;
+
+                textarea.disabled = false;
+
+                statusBar.innerText = "Ready";
+
+                updateEditorMetrics();
+
+                textarea.focus();
+
+            } catch (e) {
+
+                textarea.value = `Error loading file: ${e.message}`;
+
+                statusBar.innerText = "Error loading";
+
+            }
+
+        }
+
+
+
+        function updateEditorMetrics() {
+
+            const text = document.getElementById("editor-content").value;
+
+            const lines = text.split("\n").length;
+
+            const chars = text.length;
+
+            document.getElementById("editor-file-info").innerText = `Lines: ${lines} | Chars: ${chars}`;
+
+        }
+
+
+
+        function setupEditorEvents() {
+
+            const textarea = document.getElementById("editor-content");
+
+            textarea.addEventListener("input", () => {
+
+                updateEditorMetrics();
+
+                document.getElementById("editor-save-status").innerText = "Unsaved changes";
+
+            });
+
+
+
+            textarea.addEventListener("keydown", function(e) {
+
+                if (e.key === "Tab") {
+
+                    e.preventDefault();
+
+                    const start = this.selectionStart;
+
+                    const end = this.selectionEnd;
+
+                    this.value = this.value.substring(0, start) + "    " + this.value.substring(end);
+
+                    this.selectionStart = this.selectionEnd = start + 4;
+
+                    updateEditorMetrics();
+
+                } else if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+
+                    e.preventDefault();
+
+                    submitSaveFile();
+
+                }
+
+            });
+
+        }
+
+
+
+        function closeEditorModal() {
+
+            document.getElementById("editor-modal").style.display = "none";
+
+            editingItem = null;
+
+        }
+
+
+
+        async function submitSaveFile() {
+
+            if (!editingItem) return;
+
+            const btn = document.getElementById("editor-save-btn");
+
+            const statusBar = document.getElementById("editor-save-status");
+
+            const content = document.getElementById("editor-content").value;
+
+
+
+            btn.disabled = true;
+
+            statusBar.innerText = "Saving...";
+
+
+
+            try {
+
+                const res = await fetch("/api/edit", {
+
+                    method: "POST",
+
+                    headers: { "Content-Type": "application/json" },
+
+                    body: JSON.stringify({
+
+                        path: editingItem.relativePath,
+
+                        content: content
+
+                    })
+
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+
+                    statusBar.innerText = "All changes saved";
+
+                    showToast(`Saved "${editingItem.name}"`, "success");
+
+                    refreshCurrentDirectory();
+
+                } else {
+
+                    statusBar.innerText = "Save failed";
+
+                    showToast(data.message || "Failed to save file", "error");
+
+                }
+
+            } catch (e) {
+
+                statusBar.innerText = "Save error";
+
+                showToast("Save error: " + e.message, "error");
+
+            } finally {
+
+                btn.disabled = false;
+
+            }
+
+        }
+
+
+
+        // Media Viewer Modal
+
+        function openMediaModal(item) {
+
+            const modal = document.getElementById("media-modal");
+
+            const title = document.getElementById("modal-title");
+
+            const body = document.getElementById("modal-body");
+
+            title.innerText = item.name;
+
+            body.innerHTML = "";
+
+
+
+            const streamUrl = `/download?path=${encodeURIComponent(item.relativePath)}`;
+
+
+
+            if (item.isVideo) {
+
+                const video = document.createElement("video");
+
+                video.controls = true;
+
+                video.autoplay = true;
+
+                video.playsInline = true;
+
+                video.preload = "metadata";
+
+                const source = document.createElement("source");
+
+                source.src = streamUrl;
+
+                source.type = item.mimeType || "video/mp4";
+
+                video.appendChild(source);
+
+                body.appendChild(video);
+
+            } else if (item.isAudio) {
+
+                const audio = document.createElement("audio");
+
+                audio.controls = true;
+
+                audio.autoplay = true;
+
+                audio.src = streamUrl;
+
+                body.appendChild(audio);
+
+            } else if (item.isImage) {
+
+                const img = document.createElement("img");
+
+                img.src = streamUrl;
+
+                body.appendChild(img);
+
+            }
+
+
+
+            modal.style.display = "flex";
+
+        }
+
+
+
+        function closeModal() {
+
+            const modal = document.getElementById("media-modal");
+
+            const body = document.getElementById("modal-body");
+
+            modal.style.display = "none";
+
+            body.innerHTML = "";
+
+        }
+
+
+
+        // Shared Clipboard Logic
+
+        let clipboardPollInterval = null;
+
+        let lastClipsCount = 0;
+
+
+
+        function openClipboardModal() {
+
+            const modal = document.getElementById("clipboard-modal");
+
+            if (modal) {
+
+                modal.style.display = "flex";
+
+                const badge = document.getElementById("clipboard-count-badge");
+
+                if (badge) badge.style.display = "none";
+
+                const input = document.getElementById("clipboard-input");
+
+                if (input) setTimeout(() => input.focus(), 50);
+
+                pollClipboard();
+
+            }
+
+        }
+
+
+
+        function closeClipboardModal() {
+
+            const modal = document.getElementById("clipboard-modal");
+
+            if (modal) modal.style.display = "none";
+
+        }
+
+
+
+        function closeAllModals() {
+
+            closeModal();
+
+            closeRenameModal();
+
+            closeDeleteModal();
+
+            closeMkdirModal();
+
+            closeEditorModal();
+
+            closeClipboardModal();
+
+        }
+
+
+
+        async function pollClipboard() {
+
+            try {
+
+                const res = await fetch("/api/clipboard");
+
+                if (res.ok) {
+
+                    const data = await res.json();
+
+                    renderClipboardClips(data.items || []);
+
+                }
+
+            } catch (err) {
+
+                // Silently ignore if disconnected
+
+            }
+
+        }
+
+
+
+        function renderClipboardClips(items) {
+
+            const container = document.getElementById("clipboard-clips-container");
+
+            const clearBtn = document.getElementById("clipboard-clear-btn");
+
+            if (!container) return;
+
+
+
+            if (items.length === 0) {
+
+                container.innerHTML = `
+
+                    <div style="text-align: center; padding: 1.5rem 1rem; color: var(--text-secondary); font-size: 0.825rem;">
+
+                        No shared text clips yet. Type above and click <b>Send to Phone</b>.
+
+                    </div>
+
+                `;
+
+                if (clearBtn) clearBtn.style.display = "none";
+
+                return;
+
+            }
+
+
+
+            if (clearBtn) clearBtn.style.display = "inline-block";
+
+
+
+            container.innerHTML = items.map(item => {
+
+                const isPhone = item.sender === "phone";
+
+                const badgeClass = isPhone ? "clip-badge-phone" : "clip-badge-web";
+
+                const senderLabel = isPhone ? "📱 FROM PHONE" : "🌐 FROM WEB";
+
+                const d = new Date(item.timestamp);
+
+                const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                const escapedText = item.text
+
+                    .replace(/&/g, "&amp;")
+
+                    .replace(/</g, "&lt;")
+
+                    .replace(/>/g, "&gt;")
+
+                    .replace(/"/g, "&quot;")
+
+                    .replace(/'/g, "&#039;");
+
+
+
+                return `
+
+                    <div class="clip-item-card">
+
+                        <div class="clip-item-header">
+
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+
+                                <span class="${badgeClass}">${senderLabel}</span>
+
+                                <span style="font-size: 0.7rem; color: var(--text-secondary);">${timeStr}</span>
+
+                            </div>
+
+                            <div class="clip-item-actions">
+
+                                <button class="clip-action-btn" onclick="copyClipText(this, \`${encodeURIComponent(item.text)}\`)">
+
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+
+                                    Copy
+
+                                </button>
+
+                                <button class="clip-action-btn" onclick="deleteClip('${item.id}')" title="Delete">
+
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                        <div class="clip-item-body">${escapedText}</div>
+
+                    </div>
+
+                `;
+
+            }).join("");
+
+        }
+
+
+
+        async function submitClipboardText() {
+
+            const input = document.getElementById("clipboard-input");
+
+            const text = input ? input.value.trim() : "";
+
+            if (!text) {
+
+                showToast("Please enter some text to share", "error");
+
+                return;
+
+            }
+
+
+
+            try {
+
+                const res = await fetch("/api/clipboard", {
+
+                    method: "POST",
+
+                    headers: { "Content-Type": "application/json" },
+
+                    body: JSON.stringify({ text: text, sender: "web" })
+
+                });
+
+
+
+                if (res.ok) {
+
+                    input.value = "";
+
+                    showToast("Sent to phone!", "success");
+
+                    pollClipboard();
+
+                } else {
+
+                    const err = await res.json();
+
+                    showToast(err.message || "Failed to send text", "error");
+
+                }
+
+            } catch (err) {
+
+                showToast("Network error while sending text", "error");
+
+            }
+
+        }
+
+
+
+        async function copyClipText(btn, encodedText) {
+
+            const text = decodeURIComponent(encodedText);
+
+            try {
+
+                await navigator.clipboard.writeText(text);
+
+                const originalHtml = btn.innerHTML;
+
+                btn.innerHTML = `✓ Copied!`;
+
+                btn.classList.add("copied");
+
+                showToast("Copied to clipboard!", "success");
+
+                setTimeout(() => {
+
+                    btn.innerHTML = originalHtml;
+
+                    btn.classList.remove("copied");
+
+                }, 2000);
+
+            } catch (err) {
+
+                const ta = document.createElement("textarea");
+
+                ta.value = text;
+
+                document.body.appendChild(ta);
+
+                ta.select();
+
+                document.execCommand("copy");
+
+                document.body.removeChild(ta);
+
+                showToast("Copied to clipboard!", "success");
+
+            }
+
+        }
+
+
+
+        async function pasteFromWebClipboard() {
+
+            try {
+
+                const text = await navigator.clipboard.readText();
+
+                if (text) {
+
+                    const input = document.getElementById("clipboard-input");
+
+                    if (input) {
+
+                        input.value = text;
+
+                        showToast("Pasted from clipboard", "info");
+
+                    }
+
+                }
+
+            } catch (e) {
+
+                showToast("Cannot access browser clipboard. Please paste manually (Ctrl+V)", "info");
+
+            }
+
+        }
+
+
+
+        async function deleteClip(id) {
+
+            try {
+
+                const res = await fetch(`/api/clipboard?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+
+                if (res.ok) {
+
+                    pollClipboard();
+
+                }
+
+            } catch (err) {
+
+                showToast("Failed to delete clip", "error");
+
+            }
+
+        }
+
+
+
+        async function clearAllClips() {
+
+            if (!confirm("Clear all shared clipboard history?")) return;
+
+            try {
+
+                const res = await fetch("/api/clipboard", { method: "DELETE" });
+
+                if (res.ok) {
+
+                    pollClipboard();
+
+                    showToast("Clipboard cleared", "info");
+
+                }
+
+            } catch (err) {
+
+                showToast("Failed to clear clipboard", "error");
+
+            }
+
+        }
+
+
+
+        function closeModalOnBackdrop(e) {
+
+            if (e.target.classList.contains("modal")) {
+
+                closeAllModals();
+
+            }
+
+        }
+
+
+
+        // Dropzone & Upload Handler
+
+        function setupDropzone() {
+
+            const dz = document.getElementById("dropzone");
+
+            ["dragenter", "dragover"].forEach(eventName => {
+
+                dz.addEventListener(eventName, (e) => {
+
+                    e.preventDefault();
+
+                    e.stopPropagation();
+
+                    dz.classList.add("dragover");
+
+                }, false);
+
+            });
+
+            ["dragleave", "drop"].forEach(eventName => {
+
+                dz.addEventListener(eventName, (e) => {
+
+                    e.preventDefault();
+
+                    e.stopPropagation();
+
+                    dz.classList.remove("dragover");
+
+                }, false);
+
+            });
+
+            dz.addEventListener("drop", (e) => {
+
+                const dt = e.dataTransfer;
+
+                const files = dt.files;
+
+                handleFileSelect(files);
+
+            }, false);
+
+        }
+
+
+
+        function setupWholePageDragAndDrop() {
+
+            let dragCounter = 0;
+
+            const overlay = document.getElementById("fullscreen-drop-overlay");
+
+            if (!overlay) return;
+
+
+
+            window.addEventListener("dragenter", (e) => {
+
+                if (e.dataTransfer && e.dataTransfer.types && Array.from(e.dataTransfer.types).includes("Files")) {
+
+                    e.preventDefault();
+
+                    dragCounter++;
+
+                    const targetLabel = document.getElementById("overlay-target-label");
+
+                    if (targetLabel) targetLabel.innerText = `Uploading to: ${currentDirectory}`;
+
+                    overlay.classList.add("active");
+
+                }
+
+            });
+
+
+
+            window.addEventListener("dragover", (e) => {
+
+                if (e.dataTransfer && e.dataTransfer.types && Array.from(e.dataTransfer.types).includes("Files")) {
+
+                    e.preventDefault();
+
+                    e.dataTransfer.dropEffect = "copy";
+
+                    overlay.classList.add("dragover");
+
+                }
+
+            });
+
+
+
+            window.addEventListener("dragleave", (e) => {
+
+                dragCounter--;
+
+                if (dragCounter <= 0) {
+
+                    dragCounter = 0;
+
+                    overlay.classList.remove("active");
+
+                    overlay.classList.remove("dragover");
+
+                }
+
+            });
+
+
+
+            window.addEventListener("drop", (e) => {
+
+                e.preventDefault();
+
+                e.stopPropagation();
+
+                dragCounter = 0;
+
+                overlay.classList.remove("active");
+
+                overlay.classList.remove("dragover");
+
+
+
+                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+
+                    handleFileSelect(e.dataTransfer.files);
+
+                }
+
+            });
+
+        }
+
+
+
+        function handleFileSelect(files) {
+
+            if (!files || files.length === 0) return;
+
+            uploadFiles(Array.from(files));
+
+        }
+
+
+
+        async function uploadFiles(fileArray) {
+
+            const pContainer = document.getElementById("upload-progress-container");
+
+            const pBar = document.getElementById("upload-progress-bar");
+
+            const statusMsg = document.getElementById("upload-status-msg");
+
+
+
+            pContainer.style.display = "block";
+
+            statusMsg.style.display = "block";
+
+            statusMsg.style.color = "var(--text-primary)";
+
+            pBar.style.width = "0%";
+
+
+
+            let successCount = 0;
+
+
+
+            for (let i = 0; i < fileArray.length; i++) {
+
+                const file = fileArray[i];
+
+                statusMsg.innerText = `Uploading (${i + 1}/${fileArray.length}): ${file.name}`;
+
+
+
+                const formData = new FormData();
+
+                formData.append("targetPath", currentDirectory);
+
+                formData.append("file", file);
+
+
+
+                try {
+
+                    await new Promise((resolve, reject) => {
+
+                        const xhr = new XMLHttpRequest();
+
+                        xhr.open("POST", `/api/upload?path=${encodeURIComponent(currentDirectory)}`, true);
+
+                        xhr.upload.onprogress = (e) => {
+
+                            if (e.lengthComputable) {
+
+                                const basePercent = (i / fileArray.length) * 100;
+
+                                const filePercent = (e.loaded / e.total) * (100 / fileArray.length);
+
+                                pBar.style.width = `${Math.round(basePercent + filePercent)}%`;
+
+                            }
+
+                        };
+
+                        xhr.onload = () => {
+
+                            if (xhr.status >= 200 && xhr.status < 300) {
+
+                                successCount++;
+
+                                resolve();
+
+                            } else {
+
+                                reject(new Error(xhr.responseText || `HTTP ${xhr.status}`));
+
+                            }
+
+                        };
+
+                        xhr.onerror = () => reject(new Error("Network connection fault"));
+
+                        xhr.send(formData);
+
+                    });
+
+                } catch (err) {
+
+                    statusMsg.style.color = "var(--danger)";
+
+                    statusMsg.innerText = `Upload failed for ${file.name}: ${err.message}`;
+
+                    showToast(`Upload failed for ${file.name}`, "error");
+
+                    pBar.style.width = "0%";
+
+                    return;
+
+                }
+
+            }
+
+
+
+            pBar.style.width = "100%";
+
+            statusMsg.style.color = "var(--success)";
+
+            statusMsg.innerText = `Successfully transferred ${successCount} file(s) to phone storage!`;
+
+            showToast(`Uploaded ${successCount} file(s)`, "success");
+
+
+
+            setTimeout(() => {
+
+                pContainer.style.display = "none";
+
+                statusMsg.style.display = "none";
+
+                pBar.style.width = "0%";
+
+                refreshCurrentDirectory();
+
+            }, 1200);
+
+        }
+
+
+
+        function formatBytes(bytes) {
+
+            if (!bytes || bytes === 0) return "0 B";
+
+            const k = 1024;
+
+            const sizes = ["B", "KB", "MB", "GB", "TB"];
+
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+
+        }
+
+
+
+        function formatDate(timestamp) {
+
+            if (!timestamp) return "--";
+
+            const d = new Date(timestamp);
+
+            return d.toLocaleDateString() + " " + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        }
+
+
+
+        function getFileIcon(item, size = 18) {
+
+            const div = document.createElement("div");
+
+            div.className = "icon-box";
+
+            if (item.isDirectory) {
+
+                div.style.background = "rgba(251, 191, 36, 0.15)";
+
+                div.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="#fbbf24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>`;
+
+            } else if (item.isVideo) {
+
+                div.style.background = "rgba(56, 189, 248, 0.15)";
+
+                div.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="#38bdf8"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg>`;
+
+            } else if (item.isAudio) {
+
+                div.style.background = "rgba(168, 85, 247, 0.15)";
+
+                div.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="#a855f7"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>`;
+
+            } else if (item.isImage) {
+
+                div.style.background = "rgba(52, 211, 153, 0.15)";
+
+                div.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="#34d399"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>`;
+
+            } else if (item.isText) {
+
+                div.style.background = "rgba(56, 189, 248, 0.15)";
+
+                div.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>`;
+
+            } else {
+
+                div.style.background = "rgba(148, 163, 184, 0.15)";
+
+                div.innerHTML = `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="#94a3b8"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>`;
+
+            }
+
+            return div;
+
+        }
+
+    </script>
+
+</body>
+
+</html>
+
