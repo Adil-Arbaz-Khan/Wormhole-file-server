@@ -3258,7 +3258,7 @@
 
                     isReadOnly = !!data.readOnly;
 
-                    isUploadDisabled = !!data.uploadDisabled || isReadOnly;
+                    isUploadDisabled = !!data.uploadDisabled;
 
                     const roBadge = document.getElementById("badge-readonly");
 
@@ -3266,7 +3266,7 @@
 
                     const mkdirBtn = document.getElementById("btn-new-folder");
 
-                    if (mkdirBtn) mkdirBtn.style.display = isReadOnly ? "none" : "inline-flex";
+                    if (mkdirBtn) mkdirBtn.style.display = isUploadDisabled ? "none" : "inline-flex";
 
                     const dz = document.getElementById("dropzone");
 
@@ -3278,7 +3278,7 @@
 
                             dz.classList.add("dropzone-disabled");
 
-                            if (dzLabel) dzLabel.innerText = isReadOnly ? "Uploads disabled (Read-Only Mode)" : "File uploads disabled by host";
+                            if (dzLabel) dzLabel.innerText = "File uploads disabled by host";
 
                         } else {
 
@@ -4992,7 +4992,7 @@
 
             if (isUploadDisabled) {
 
-                showToast(isReadOnly ? "Server is in read-only mode" : "File uploads disabled by host", "warning");
+                showToast("File uploads disabled by host", "warning");
 
                 return;
 
@@ -5144,7 +5144,7 @@
 
             if (isUploadDisabled) {
 
-                showToast(isReadOnly ? "Server is in read-only mode" : "File uploads disabled by host", "warning");
+                showToast("File uploads disabled by host", "warning");
 
                 return;
 

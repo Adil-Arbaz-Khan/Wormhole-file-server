@@ -18,6 +18,10 @@
   </p>
 
   <p align="center">
+    <a href="releases/Wormhole-v1.0.0.apk"><b><img src="https://img.shields.io/badge/Download%20APK-v1.0.0%20(20.1%20MB)-00D26A?style=for-the-badge&logo=android&logoColor=white" alt="Download APK"/></b></a>
+  </p>
+
+  <p align="center">
     <a href="#-key-features">Features</a> •
     <a href="#-visual-showcase">Screenshots</a> •
     <a href="#-architecture--engineering-highlights">Architecture</a> •
@@ -179,6 +183,10 @@ app/build/outputs/apk/release/app-release.apk
 
 ### Install onto Device via ADB
 ```bash
+# Direct install from the repository release binary
+adb install -r releases/Wormhole-v1.0.0.apk
+
+# Or install local build
 adb install -r app/build/outputs/apk/release/app-release.apk
 ```
 

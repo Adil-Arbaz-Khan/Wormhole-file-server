@@ -278,7 +278,7 @@ fun SettingsBottomSheet(
                             color = textPrimary
                         )
                         Text(
-                            text = "Prevents file modification, rename, or deletion from browser",
+                            text = "Prevents file rename and deletion from browser",
                             style = MaterialTheme.typography.bodyMedium,
                             color = textSecondary
                         )

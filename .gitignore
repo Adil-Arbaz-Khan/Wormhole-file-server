@@ -5,14 +5,11 @@
 .DS_Store
 /build
 /captures
-<<<<<<< HEAD
 /logo/
-=======
-/logo
->>>>>>> 3f06f4cccf5ac26facb8aec4629b8e2d8499e0e2
 .externalNativeBuild
 .cxx
 *.apk
+!releases/*.apk
 *.aab
 output.json
 

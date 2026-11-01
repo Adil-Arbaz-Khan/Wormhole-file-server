@@ -497,8 +497,8 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig) {
 
     // Create New Folder API
     post("/api/mkdir") {
-        if (config.readOnly) {
-            call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "Server is in read-only mode"))
+        if (config.uploadDisabled) {
+            call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "Folder creation is disabled"))
             return@post
         }
         try {
@@ -567,9 +567,8 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig) {
 
     // Multi-part File Upload API
     post("/api/upload") {
-        if (config.uploadDisabled || config.readOnly) {
-            val message = if (config.uploadDisabled) "File uploads are disabled" else "Server is in read-only mode"
-            call.respond(HttpStatusCode.Forbidden, OperationResponse(false, message))
+        if (config.uploadDisabled) {
+            call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "File uploads are disabled"))
             return@post
         }
         try {
