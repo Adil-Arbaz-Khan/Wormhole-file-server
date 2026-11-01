@@ -63,7 +63,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jarvis.fileserver.model.ServerConfig
+import com.jarvis.fileserver.ui.theme.AmberWarn
 import com.jarvis.fileserver.ui.theme.CyanNeon
+import com.jarvis.fileserver.ui.theme.EmeraldOnline
 import com.jarvis.fileserver.ui.theme.LightBorder
 import com.jarvis.fileserver.ui.theme.LightSurface
 import com.jarvis.fileserver.ui.theme.LightSurfaceElevated
@@ -234,14 +236,14 @@ fun SettingsBottomSheet(
             OutlinedTextField(
                 value = rootPath,
                 onValueChange = { rootPath = it },
-                label = { Text("Shared Folder / File Path") },
+                label = { Text("Shared Storage Path") },
                 singleLine = true,
                 enabled = !isServerRunning,
                 modifier = Modifier.fillMaxWidth(),
                 colors = outlinedTextFieldColors(isDarkTheme)
             )
 
-            // Storage Quick Scope Buttons
+            // Storage Quick Scope Buttons (Equal, uniform 3-tile row with no text wrapping)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -249,45 +251,91 @@ fun SettingsBottomSheet(
                 Button(
                     onClick = onPickFolder,
                     enabled = !isServerRunning,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(42.dp),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+                    shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isDarkTheme) Slate800 else LightSurfaceElevated,
                         contentColor = textPrimary
-                    )
+                    ),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, if (isDarkTheme) Slate700 else LightBorder)
                 ) {
-                    Icon(imageVector = Icons.Default.FolderOpen, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Pick Folder", fontSize = 12.sp)
+                    Icon(
+                        imageVector = Icons.Default.FolderOpen,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = CyanNeon
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Pick Folder",
+                        fontSize = 11.5.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        softWrap = false
+                    )
                 }
 
                 Button(
                     onClick = onPickFile,
                     enabled = !isServerRunning,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(42.dp),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+                    shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isDarkTheme) Slate800 else LightSurfaceElevated,
                         contentColor = textPrimary
-                    )
+                    ),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, if (isDarkTheme) Slate700 else LightBorder)
                 ) {
-                    Icon(imageVector = Icons.Default.InsertDriveFile, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Pick File", fontSize = 12.sp)
+                    Icon(
+                        imageVector = Icons.Default.InsertDriveFile,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = EmeraldOnline
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Pick File",
+                        fontSize = 11.5.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        softWrap = false
+                    )
                 }
 
                 Button(
                     onClick = onSelectAllStorage,
                     enabled = !isServerRunning,
-                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(42.dp),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 6.dp, vertical = 0.dp),
+                    shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isDarkTheme) Slate800 else LightSurfaceElevated,
                         contentColor = textPrimary
-                    )
+                    ),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, if (isDarkTheme) Slate700 else LightBorder)
                 ) {
-                    Icon(imageVector = Icons.Default.Storage, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Icon(
+                        imageVector = Icons.Default.Storage,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = AmberWarn
+                    )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("All", fontSize = 12.sp)
+                    Text(
+                        text = "All Storage",
+                        fontSize = 11.5.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        softWrap = false
+                    )
                 }
             }
 
