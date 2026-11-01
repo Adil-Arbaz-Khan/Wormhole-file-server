@@ -2,7 +2,7 @@
 
   <img src="screenshots/logo.png" alt="Wormhole Logo" width="140" height="140" style="object-fit: contain; filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.4));" />
 
-  # 🌌 Wormhole v2.0
+  # 🌌 Wormhole v2.0 
   ### *High-Performance Android HTTP Gateway, Dual-Mode Remote Storage Server & Instant Global Cloudflare Tunnel*
 
   [![Platform](https://img.shields.io/badge/Platform-Android%208.0%2B%20(API%2026%2B)-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://android.com)
@@ -107,11 +107,11 @@ Wormhole v2.0 introduces an advanced dual-mode architecture while preserving the
       </td>
       <td align="center" width="33%">
         <b>Live Bandwidth & Telemetry</b><br/><br/>
-        <img src="screenshots/app_v2_telemetry.png" width="260" alt="Live Bandwidth Dashboard"/>
+        <img src="screenshots/app_dashboard.png" width="260" alt="Live Bandwidth Dashboard"/>
       </td>
       <td align="center" width="33%">
-        <b>Two-Way Shared Clipboard</b><br/><br/>
-        <img src="screenshots/app_clipboard.jpg" width="260" alt="Shared Clipboard Sheet"/>
+        <b>Settings Pannel</b><br/><br/>
+        <img src="screenshots/app_settings.jpg" width="260" alt="Settings interface"/>
       </td>
     </tr>
   </table>
