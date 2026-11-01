@@ -21,8 +21,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
@@ -188,7 +188,7 @@ fun HeroServerCard(
                 ) {
                     Icon(
                         imageVector = when {
-                            isSingleFile -> Icons.Default.InsertDriveFile
+                            isSingleFile -> Icons.AutoMirrored.Filled.InsertDriveFile
                             isDefaultAll -> Icons.Default.PhoneAndroid
                             else -> Icons.Default.Folder
                         },

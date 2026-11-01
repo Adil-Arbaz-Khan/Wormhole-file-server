@@ -27,21 +27,26 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Dns
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.EditOff
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
-import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -81,12 +86,14 @@ import androidx.compose.ui.unit.sp
 import com.jarvis.fileserver.model.ServerConfig
 import com.jarvis.fileserver.ui.theme.AmberWarn
 import com.jarvis.fileserver.ui.theme.CyanNeon
+import com.jarvis.fileserver.ui.theme.EmeraldLive
 import com.jarvis.fileserver.ui.theme.EmeraldOnline
 import com.jarvis.fileserver.ui.theme.LightBorder
 import com.jarvis.fileserver.ui.theme.LightSurface
 import com.jarvis.fileserver.ui.theme.LightSurfaceElevated
 import com.jarvis.fileserver.ui.theme.LightTextPrimary
 import com.jarvis.fileserver.ui.theme.LightTextSecondary
+import com.jarvis.fileserver.ui.theme.PurpleAccent
 import com.jarvis.fileserver.ui.theme.Slate400
 import com.jarvis.fileserver.ui.theme.Slate700
 import com.jarvis.fileserver.ui.theme.Slate800
@@ -320,7 +327,7 @@ fun SettingsBottomSheet(
                     ) {
                         Icon(
                             imageVector = when {
-                                isSingleFile -> Icons.Default.InsertDriveFile
+                                isSingleFile -> Icons.AutoMirrored.Filled.InsertDriveFile
                                 isDefaultAll -> Icons.Default.PhoneAndroid
                                 else -> Icons.Default.Folder
                             },
@@ -360,136 +367,61 @@ fun SettingsBottomSheet(
                 }
             }
 
-            // Storage Quick Scope Buttons (Equal, uniform 3-tile row with no text wrapping)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Button(
-                    onClick = onPickFolder,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(42.dp),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 6.dp, vertical = 0.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isDarkTheme) Slate800 else LightSurfaceElevated,
-                        contentColor = textPrimary
-                    ),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, if (isDarkTheme) Slate700 else LightBorder)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.FolderOpen,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = CyanNeon
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Pick Folder",
-                        fontSize = 11.5.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        softWrap = false
-                    )
-                }
-
-                Button(
-                    onClick = onPickFile,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(42.dp),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 6.dp, vertical = 0.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isDarkTheme) Slate800 else LightSurfaceElevated,
-                        contentColor = textPrimary
-                    ),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, if (isDarkTheme) Slate700 else LightBorder)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.InsertDriveFile,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = EmeraldOnline
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Pick File",
-                        fontSize = 11.5.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        softWrap = false
-                    )
-                }
-
-                Button(
-                    onClick = {
-                        rootPath = defaultRoot
-                        onSelectAllStorage()
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(42.dp),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 6.dp, vertical = 0.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isDarkTheme) Slate800 else LightSurfaceElevated,
-                        contentColor = textPrimary
-                    ),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, if (isDarkTheme) Slate700 else LightBorder)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Storage,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = AmberWarn
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "All Storage",
-                        fontSize = 11.5.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        softWrap = false
-                    )
-                }
-            }
-
-            // Preset Folder Chips
+            // Storage Scope Selection (Single unified row with icons)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                val presets = listOf(
-                    "All Storage" to defaultRoot,
-                    "Downloads" to "$defaultRoot/Download",
-                    "DCIM / Photos" to "$defaultRoot/DCIM",
-                    "Documents" to "$defaultRoot/Documents",
-                    "Movies" to "$defaultRoot/Movies",
-                    "Music" to "$defaultRoot/Music"
+                // 1. Pick Folder
+                ScopeActionChip(
+                    label = "Pick Folder",
+                    icon = Icons.Default.FolderOpen,
+                    iconTint = CyanNeon,
+                    isDarkTheme = isDarkTheme,
+                    textPrimary = textPrimary,
+                    onClick = onPickFolder
                 )
 
-                presets.forEach { (label, path) ->
+                // 2. Pick File
+                ScopeActionChip(
+                    label = "Pick File",
+                    icon = Icons.AutoMirrored.Filled.InsertDriveFile,
+                    iconTint = EmeraldOnline,
+                    isDarkTheme = isDarkTheme,
+                    textPrimary = textPrimary,
+                    onClick = onPickFile
+                )
+
+                // 3. Preset Scopes
+                val presets = listOf(
+                    Triple("All Storage", defaultRoot, Icons.Default.Storage to AmberWarn),
+                    Triple("Downloads", "$defaultRoot/Download", Icons.Default.Download to CyanNeon),
+                    Triple("DCIM / Photos", "$defaultRoot/DCIM", Icons.Default.PhotoCamera to PurpleAccent),
+                    Triple("Documents", "$defaultRoot/Documents", Icons.Default.Description to CyanNeon),
+                    Triple("Movies", "$defaultRoot/Movies", Icons.Default.Movie to Color(0xFFFB923C)),
+                    Triple("Music", "$defaultRoot/Music", Icons.Default.MusicNote to EmeraldLive)
+                )
+
+                presets.forEach { (label, path, iconInfo) ->
+                    val (icon, tint) = iconInfo
                     val isSelected = rootPath.trimEnd('/') == path.trimEnd('/')
-                    FilterChip(
-                        selected = isSelected,
-                        onClick = { rootPath = path },
-                        label = { Text(label, fontSize = 12.sp) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = CyanNeon.copy(alpha = 0.2f),
-                            selectedLabelColor = if (isDarkTheme) CyanNeon else Color(0xFF0284C7),
-                            containerColor = if (isDarkTheme) Slate800 else LightSurfaceElevated,
-                            labelColor = textSecondary
-                        ),
-                        border = FilterChipDefaults.filterChipBorder(
-                            enabled = true,
-                            selected = isSelected,
-                            borderColor = if (isDarkTheme) Slate700 else LightBorder,
-                            selectedBorderColor = CyanNeon
-                        )
+                    ScopePresetChip(
+                        label = label,
+                        icon = icon,
+                        iconTint = tint,
+                        isSelected = isSelected,
+                        isDarkTheme = isDarkTheme,
+                        textPrimary = textPrimary,
+                        textSecondary = textSecondary,
+                        onClick = {
+                            rootPath = path
+                            if (path == defaultRoot) {
+                                onSelectAllStorage()
+                            }
+                        }
                     )
                 }
             }
@@ -984,4 +916,100 @@ private fun formatSettingsFileSize(bytes: Long): String {
     val units = arrayOf("B", "KB", "MB", "GB", "TB")
     val digitGroups = (Math.log10(bytes.toDouble()) / Math.log10(1024.0)).toInt()
     return String.format(java.util.Locale.US, "%.1f %s", bytes / Math.pow(1024.0, digitGroups.toDouble()), units[digitGroups])
+}
+
+@Composable
+private fun ScopeActionChip(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconTint: Color,
+    isDarkTheme: Boolean,
+    textPrimary: Color,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(10.dp),
+        color = if (isDarkTheme) Slate800 else LightSurfaceElevated,
+        border = androidx.compose.foundation.BorderStroke(1.dp, if (isDarkTheme) Slate700 else LightBorder),
+        modifier = Modifier.height(40.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = iconTint
+            )
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = textPrimary,
+                maxLines = 1,
+                softWrap = false
+            )
+        }
+    }
+}
+
+@Composable
+private fun ScopePresetChip(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconTint: Color,
+    isSelected: Boolean,
+    isDarkTheme: Boolean,
+    textPrimary: Color,
+    textSecondary: Color,
+    onClick: () -> Unit
+) {
+    val containerColor = if (isSelected) {
+        CyanNeon.copy(alpha = 0.18f)
+    } else {
+        if (isDarkTheme) Slate800 else LightSurfaceElevated
+    }
+    val borderColor = if (isSelected) {
+        CyanNeon
+    } else {
+        if (isDarkTheme) Slate700 else LightBorder
+    }
+    val labelColor = if (isSelected) {
+        if (isDarkTheme) CyanNeon else Color(0xFF0284C7)
+    } else {
+        textSecondary
+    }
+
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(10.dp),
+        color = containerColor,
+        border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
+        modifier = Modifier.height(40.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = if (isSelected) (if (isDarkTheme) CyanNeon else Color(0xFF0284C7)) else iconTint
+            )
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                color = labelColor,
+                maxLines = 1,
+                softWrap = false
+            )
+        }
+    }
 }
