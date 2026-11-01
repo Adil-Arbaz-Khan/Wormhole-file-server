@@ -1,23 +1,33 @@
 package com.jarvis.fileserver.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.ContentPaste
@@ -48,6 +58,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -110,19 +121,44 @@ fun SettingsBottomSheet(
     val textSecondary = if (isDarkTheme) Slate400 else LightTextSecondary
     val accentColor = if (isDarkTheme) CyanNeon else Color(0xFF0284C7)
 
+    val parsedPort = portText.toIntOrNull() ?: currentConfig.port
+    val hasChanges = parsedPort != currentConfig.port ||
+            rootPath != currentConfig.rootPath ||
+            authEnabled != currentConfig.basicAuthEnabled ||
+            username != currentConfig.authUsername ||
+            password != currentConfig.authPassword ||
+            clipboardEnabled != currentConfig.clipboardEnabled ||
+            readOnly != currentConfig.readOnly ||
+            uploadDisabled != currentConfig.uploadDisabled ||
+            remoteServerMode != currentConfig.remoteServerModeEnabled
+
+    val scrollState = rememberScrollState()
+
+    // When settings change while scrolled down, smoothly scroll to reveal the lower option above the hover bar
+    LaunchedEffect(hasChanges) {
+        if (hasChanges && scrollState.value > 80) {
+            kotlinx.coroutines.delay(120)
+            scrollState.animateScrollTo(scrollState.maxValue)
+        }
+    }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         containerColor = sheetBg,
         dragHandle = null
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+        Box(
+            modifier = Modifier.fillMaxWidth()
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 24.dp)
+                    .verticalScroll(scrollState),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
             Text(
                 text = "SETTINGS & PREFERENCES",
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
@@ -719,41 +755,99 @@ fun SettingsBottomSheet(
                 }
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            // Dynamic bottom clearance spacer so floating Apply button never obscures any controls
+            val bottomSpacerHeight by animateDpAsState(
+                targetValue = if (hasChanges) 100.dp else 24.dp,
+                label = "settingsBottomClearance"
+            )
+            Spacer(modifier = Modifier.height(bottomSpacerHeight))
+        }
 
-            // Save Button
-            Button(
-                onClick = {
-                    val parsedPort = portText.toIntOrNull() ?: 8080
-                    onSaveConfig(
-                        currentConfig.copy(
-                            port = parsedPort,
-                            rootPath = rootPath,
-                            basicAuthEnabled = authEnabled,
-                            authUsername = username,
-                            authPassword = password,
-                            clipboardEnabled = clipboardEnabled,
-                            readOnly = readOnly,
-                            uploadDisabled = uploadDisabled,
-                            remoteServerModeEnabled = remoteServerMode
-                        )
-                    )
-                    onDismiss()
-                },
+        // Hovering Floating Apply Configuration Bar
+        androidx.compose.animation.AnimatedVisibility(
+            visible = hasChanges,
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+        ) {
+            Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = accentColor)
+                    .padding(horizontal = 18.dp, vertical = 14.dp),
+                shape = RoundedCornerShape(16.dp),
+                color = (if (isDarkTheme) Color(0xFF0F172A) else Color.White).copy(alpha = 0.96f),
+                border = androidx.compose.foundation.BorderStroke(1.5.dp, CyanNeon.copy(alpha = 0.8f)),
+                shadowElevation = 14.dp
             ) {
-                Text(
-                    text = "Apply Configuration",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = Color(0xFF020617)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(AmberWarn)
+                            )
+                            Text(
+                                text = "Unsaved Changes",
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                color = textPrimary
+                            )
+                        }
+                        Text(
+                            text = "Tap Apply to update settings",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = textSecondary
+                        )
+                    }
+
+                    Button(
+                        onClick = {
+                            onSaveConfig(
+                                currentConfig.copy(
+                                    port = parsedPort,
+                                    rootPath = rootPath,
+                                    basicAuthEnabled = authEnabled,
+                                    authUsername = username,
+                                    authPassword = password,
+                                    clipboardEnabled = clipboardEnabled,
+                                    readOnly = readOnly,
+                                    uploadDisabled = uploadDisabled,
+                                    remoteServerModeEnabled = remoteServerMode
+                                )
+                            )
+                            onDismiss()
+                        },
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = CyanNeon,
+                            contentColor = Color(0xFF020617)
+                        ),
+                        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 10.dp)
+                    ) {
+                        Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Apply",
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
+                        )
+                    }
+                }
             }
         }
     }
+}
 }
 
 @Composable
