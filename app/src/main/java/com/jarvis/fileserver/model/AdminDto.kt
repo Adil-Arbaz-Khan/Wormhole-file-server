@@ -21,7 +21,15 @@ data class AdminStatusResponse(
     val totalBytesSent: Long,
     val totalBytesReceived: Long,
     val networkType: String,
+    val readOnly: Boolean = false,
+    val uploadDisabled: Boolean = false,
     val recentActivities: List<ActivityEventItemDto> = emptyList()
+)
+
+@Serializable
+data class AdminSecuritySettingsRequest(
+    val readOnly: Boolean,
+    val uploadDisabled: Boolean
 )
 
 @Serializable

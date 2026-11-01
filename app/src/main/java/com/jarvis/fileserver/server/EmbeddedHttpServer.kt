@@ -108,6 +108,14 @@ class EmbeddedHttpServer(
 
     val isRunning: Boolean
         get() = engine != null
+
+    companion object {
+        @Volatile
+        var runtimeReadOnly: Boolean? = null
+
+        @Volatile
+        var runtimeUploadDisabled: Boolean? = null
+    }
 }
 
 private fun Application.configureServer(context: Context, config: ServerConfig) {
@@ -277,8 +285,8 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
                 freeSpaceBytes = freeSpace,
                 totalSpaceBytes = totalSpace,
                 clipboardEnabled = config.clipboardEnabled,
-                readOnly = config.readOnly,
-                uploadDisabled = config.uploadDisabled,
+                readOnly = EmbeddedHttpServer.runtimeReadOnly ?: config.readOnly,
+                uploadDisabled = EmbeddedHttpServer.runtimeUploadDisabled ?: config.uploadDisabled,
                 uploadSpeedBps = snap.uploadSpeedBps,
                 downloadSpeedBps = snap.downloadSpeedBps,
                 totalBytesSent = snap.totalBytesSent,
@@ -465,7 +473,7 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
 
     // Delete File or Directory API
     suspend fun executeDelete(path: String, call: ApplicationCall) {
-        if (config.readOnly) {
+        if (EmbeddedHttpServer.runtimeReadOnly ?: config.readOnly) {
             call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "Server is in read-only mode"))
             return
         }
@@ -516,7 +524,7 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
 
     // Rename File or Folder API
     post("/api/rename") {
-        if (config.readOnly) {
+        if (EmbeddedHttpServer.runtimeReadOnly ?: config.readOnly) {
             call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "Server is in read-only mode"))
             return@post
         }
@@ -570,7 +578,7 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
 
     // Create New Folder API
     post("/api/mkdir") {
-        if (config.uploadDisabled) {
+        if (EmbeddedHttpServer.runtimeUploadDisabled ?: config.uploadDisabled) {
             call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "Folder creation is disabled"))
             return@post
         }
@@ -610,7 +618,7 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
 
     // Edit Text/Content API
     post("/api/edit") {
-        if (config.readOnly) {
+        if (EmbeddedHttpServer.runtimeReadOnly ?: config.readOnly) {
             call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "Server is in read-only mode"))
             return@post
         }
@@ -642,7 +650,7 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
 
     // Multi-part File Upload API
     post("/api/upload") {
-        if (config.uploadDisabled) {
+        if (EmbeddedHttpServer.runtimeUploadDisabled ?: config.uploadDisabled) {
             call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "File uploads are disabled"))
             return@post
         }
@@ -911,9 +919,32 @@ private fun Route.registerAdminRoutes(context: Context, config: ServerConfig, se
                 totalBytesSent = snap.totalBytesSent,
                 totalBytesReceived = snap.totalBytesReceived,
                 networkType = netType,
+                readOnly = EmbeddedHttpServer.runtimeReadOnly ?: config.readOnly,
+                uploadDisabled = EmbeddedHttpServer.runtimeUploadDisabled ?: config.uploadDisabled,
                 recentActivities = activities
             )
         )
+    }
+
+    // Admin Security Policy Updates (Remote Toggles)
+    post("/api/admin/security") {
+        if (!isAuthorizedAdmin(call, config, context)) {
+            call.respond(HttpStatusCode.Unauthorized, OperationResponse(false, "Unauthorized admin access"))
+            return@post
+        }
+        try {
+            val req = call.receive<com.jarvis.fileserver.model.AdminSecuritySettingsRequest>()
+            EmbeddedHttpServer.runtimeReadOnly = req.readOnly
+            EmbeddedHttpServer.runtimeUploadDisabled = req.uploadDisabled
+            ActivityLogger.log(
+                ActivityType.SERVER_EVENT,
+                "Security Policy Changed",
+                "ReadOnly: ${req.readOnly}, UploadsDisabled: ${req.uploadDisabled}"
+            )
+            call.respond(OperationResponse(true, "Security policy updated successfully"))
+        } catch (e: Exception) {
+            call.respond(HttpStatusCode.BadRequest, OperationResponse(false, "Invalid request: ${e.localizedMessage}"))
+        }
     }
 
     // Admin Remote File Explorer
