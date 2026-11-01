@@ -78,16 +78,27 @@ import java.util.UUID
 
 class EmbeddedHttpServer(
     private val context: Context,
-    private val config: ServerConfig
+    initialConfig: ServerConfig
 ) {
+    @Volatile
+    var config: ServerConfig = initialConfig
+        private set
+
+    val rootDir: File
+        get() = File(config.rootPath)
+
     private var engine: ApplicationEngine? = null
+
+    fun updateConfig(newConfig: ServerConfig) {
+        this.config = newConfig
+    }
 
     fun start() {
         if (engine != null) return
 
         android.util.Log.i("EmbeddedHttpServer", "Building embeddedServer on port ${config.port}...")
         val serverEngine = embeddedServer(CIO, port = config.port, host = "0.0.0.0") {
-            configureServer(context, config)
+            configureServer(context, this@EmbeddedHttpServer)
         }
 
         serverEngine.start(wait = false)
@@ -98,7 +109,7 @@ class EmbeddedHttpServer(
     fun stop() {
         try {
             TrafficMonitor.stop()
-            engine?.stop(gracePeriodMillis = 200, timeoutMillis = 1000)
+            engine?.stop(gracePeriodMillis = 150, timeoutMillis = 1000)
         } catch (e: Exception) {
             android.util.Log.w("EmbeddedHttpServer", "Error stopping server engine", e)
         } finally {
@@ -118,7 +129,7 @@ class EmbeddedHttpServer(
     }
 }
 
-private fun Application.configureServer(context: Context, config: ServerConfig) {
+private fun Application.configureServer(context: Context, server: EmbeddedHttpServer) {
     val serverStartTime = System.currentTimeMillis()
     TrafficMonitor.start()
     ShareRepository.init(context)
@@ -169,12 +180,13 @@ private fun Application.configureServer(context: Context, config: ServerConfig) 
     }
 
     // 5. Basic Authentication if enabled for standard routes
-    if (config.basicAuthEnabled && config.authPassword.isNotBlank()) {
+    if (server.config.basicAuthEnabled && server.config.authPassword.isNotBlank()) {
         install(Authentication) {
             basic("auth-basic") {
                 realm = "Wormhole Access Gateway"
                 validate { credentials ->
-                    if (credentials.name == config.authUsername && credentials.password == config.authPassword) {
+                    val current = server.config
+                    if (credentials.name == current.authUsername && credentials.password == current.authPassword) {
                         UserIdPrincipal(credentials.name)
                     } else {
                         null
@@ -186,24 +198,23 @@ private fun Application.configureServer(context: Context, config: ServerConfig) 
 
     routing {
         // Tokenized share routes are independently validated and bypass Basic Auth
-        registerShareRoutes(context, config)
+        registerShareRoutes(context, server)
 
         // Admin management routes use Bearer token validation
-        registerAdminRoutes(context, config, serverStartTime)
+        registerAdminRoutes(context, server, serverStartTime)
 
         // Standard sharing routes
-        if (config.basicAuthEnabled && config.authPassword.isNotBlank()) {
+        if (server.config.basicAuthEnabled && server.config.authPassword.isNotBlank()) {
             authenticate("auth-basic") {
-                registerAppRoutes(context, config, serverStartTime)
+                registerAppRoutes(context, server, serverStartTime)
             }
         } else {
-            registerAppRoutes(context, config, serverStartTime)
+            registerAppRoutes(context, server, serverStartTime)
         }
     }
 }
 
-private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serverStartTime: Long) {
-    val rootDir = File(config.rootPath)
+private fun Route.registerAppRoutes(context: Context, server: EmbeddedHttpServer, serverStartTime: Long) {
 
     // Embedded Web UI
     get("/") {
@@ -273,6 +284,8 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
 
     // System / Storage Status API with real-time operational metrics
     get("/api/status") {
+        val rootDir = server.rootDir
+        val currentConfig = server.config
         val totalSpace = if (rootDir.isFile) rootDir.parentFile?.totalSpace ?: 0L else rootDir.totalSpace
         val freeSpace = if (rootDir.isFile) rootDir.parentFile?.freeSpace ?: 0L else rootDir.freeSpace
         val snap = TrafficMonitor.currentSnapshot
@@ -284,9 +297,9 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
                 rootPath = rootDir.absolutePath,
                 freeSpaceBytes = freeSpace,
                 totalSpaceBytes = totalSpace,
-                clipboardEnabled = config.clipboardEnabled,
-                readOnly = EmbeddedHttpServer.runtimeReadOnly ?: config.readOnly,
-                uploadDisabled = EmbeddedHttpServer.runtimeUploadDisabled ?: config.uploadDisabled,
+                clipboardEnabled = currentConfig.clipboardEnabled,
+                readOnly = EmbeddedHttpServer.runtimeReadOnly ?: currentConfig.readOnly,
+                uploadDisabled = EmbeddedHttpServer.runtimeUploadDisabled ?: currentConfig.uploadDisabled,
                 uploadSpeedBps = snap.uploadSpeedBps,
                 downloadSpeedBps = snap.downloadSpeedBps,
                 totalBytesSent = snap.totalBytesSent,
@@ -294,7 +307,7 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
                 activeConnections = snap.activeConnections,
                 activeVisitorsCount = snap.activeVisitorsCount,
                 uptimeSeconds = uptime,
-                remoteServerMode = config.remoteServerModeEnabled
+                remoteServerMode = currentConfig.remoteServerModeEnabled
             )
         )
     }
@@ -315,7 +328,7 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
 
     // Shared Clipboard API
     get("/api/clipboard") {
-        if (!config.clipboardEnabled) {
+        if (!server.config.clipboardEnabled) {
             call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "Clipboard sharing is disabled"))
             return@get
         }
@@ -328,7 +341,7 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
     }
 
     post("/api/clipboard") {
-        if (!config.clipboardEnabled) {
+        if (!server.config.clipboardEnabled) {
             call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "Clipboard sharing is disabled"))
             return@post
         }
@@ -353,7 +366,7 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
     }
 
     delete("/api/clipboard") {
-        if (!config.clipboardEnabled) {
+        if (!server.config.clipboardEnabled) {
             call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "Clipboard sharing is disabled"))
             return@delete
         }
@@ -368,6 +381,7 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
 
     // Directory Listing API
     get("/api/files") {
+        val rootDir = server.rootDir
         if (rootDir.isFile) {
             val mime = getMimeType(rootDir)
             val item = FileItemDto(
@@ -441,6 +455,7 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
 
     // File Streaming & Downloading with HTTP Range Support
     get("/download") {
+        val rootDir = server.rootDir
         val targetFile = if (rootDir.isFile) {
             rootDir
         } else {
@@ -477,7 +492,9 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
 
     // Delete File or Directory API
     suspend fun executeDelete(path: String, call: ApplicationCall) {
-        if (EmbeddedHttpServer.runtimeReadOnly ?: config.readOnly) {
+        val rootDir = server.rootDir
+        val currentConfig = server.config
+        if (EmbeddedHttpServer.runtimeReadOnly ?: currentConfig.readOnly) {
             call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "Server is in read-only mode"))
             return
         }
@@ -528,7 +545,9 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
 
     // Rename File or Folder API
     post("/api/rename") {
-        if (EmbeddedHttpServer.runtimeReadOnly ?: config.readOnly) {
+        val rootDir = server.rootDir
+        val currentConfig = server.config
+        if (EmbeddedHttpServer.runtimeReadOnly ?: currentConfig.readOnly) {
             call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "Server is in read-only mode"))
             return@post
         }
@@ -582,7 +601,9 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
 
     // Create New Folder API
     post("/api/mkdir") {
-        if (EmbeddedHttpServer.runtimeUploadDisabled ?: config.uploadDisabled) {
+        val rootDir = server.rootDir
+        val currentConfig = server.config
+        if (EmbeddedHttpServer.runtimeUploadDisabled ?: currentConfig.uploadDisabled) {
             call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "Folder creation is disabled"))
             return@post
         }
@@ -622,7 +643,9 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
 
     // Edit Text/Content API
     post("/api/edit") {
-        if (EmbeddedHttpServer.runtimeReadOnly ?: config.readOnly) {
+        val rootDir = server.rootDir
+        val currentConfig = server.config
+        if (EmbeddedHttpServer.runtimeReadOnly ?: currentConfig.readOnly) {
             call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "Server is in read-only mode"))
             return@post
         }
@@ -654,7 +677,9 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
 
     // Multi-part File Upload API
     post("/api/upload") {
-        if (EmbeddedHttpServer.runtimeUploadDisabled ?: config.uploadDisabled) {
+        val rootDir = server.rootDir
+        val currentConfig = server.config
+        if (EmbeddedHttpServer.runtimeUploadDisabled ?: currentConfig.uploadDisabled) {
             call.respond(HttpStatusCode.Forbidden, OperationResponse(false, "File uploads are disabled"))
             return@post
         }
@@ -722,7 +747,7 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
  * Tokenized Share Routes: Public endpoints for sharing specific files/folders
  * without exposing raw filesystem paths in URLs.
  */
-private fun Route.registerShareRoutes(context: Context, config: ServerConfig) {
+private fun Route.registerShareRoutes(context: Context, server: EmbeddedHttpServer) {
     // 1. Web Viewer for Tokenized Share
     get("/s/{token}") {
         try {
@@ -895,16 +920,16 @@ private fun Route.registerShareRoutes(context: Context, config: ServerConfig) {
 /**
  * Remote Administrator Endpoints: Allows Phone A to monitor and manage Phone B.
  */
-private fun Route.registerAdminRoutes(context: Context, config: ServerConfig, serverStartTime: Long) {
-    val rootDir = File(config.rootPath)
-
+private fun Route.registerAdminRoutes(context: Context, server: EmbeddedHttpServer, serverStartTime: Long) {
     // Admin Status & Telemetry
     get("/api/admin/status") {
-        if (!isAuthorizedAdmin(call, config, context)) {
+        if (!isAuthorizedAdmin(call, server.config, context)) {
             call.respond(HttpStatusCode.Unauthorized, OperationResponse(false, "Unauthorized admin access"))
             return@get
         }
 
+        val rootDir = server.rootDir
+        val currentConfig = server.config
         val (batPct, batTemp, isCharging) = getBatteryInfo(context)
         val netType = getCurrentNetworkType(context)
         val snap = TrafficMonitor.currentSnapshot
@@ -927,7 +952,7 @@ private fun Route.registerAdminRoutes(context: Context, config: ServerConfig, se
 
         call.respond(
             AdminStatusResponse(
-                deviceId = config.hostDeviceId.ifBlank { "wormhole-host" },
+                deviceId = currentConfig.hostDeviceId.ifBlank { "wormhole-host" },
                 deviceName = devName,
                 status = "ONLINE",
                 batteryPct = batPct,
@@ -943,8 +968,8 @@ private fun Route.registerAdminRoutes(context: Context, config: ServerConfig, se
                 totalBytesSent = snap.totalBytesSent,
                 totalBytesReceived = snap.totalBytesReceived,
                 networkType = netType,
-                readOnly = EmbeddedHttpServer.runtimeReadOnly ?: config.readOnly,
-                uploadDisabled = EmbeddedHttpServer.runtimeUploadDisabled ?: config.uploadDisabled,
+                readOnly = EmbeddedHttpServer.runtimeReadOnly ?: currentConfig.readOnly,
+                uploadDisabled = EmbeddedHttpServer.runtimeUploadDisabled ?: currentConfig.uploadDisabled,
                 recentActivities = activities
             )
         )
@@ -952,7 +977,7 @@ private fun Route.registerAdminRoutes(context: Context, config: ServerConfig, se
 
     // Admin Security Policy Updates (Remote Toggles)
     post("/api/admin/security") {
-        if (!isAuthorizedAdmin(call, config, context)) {
+        if (!isAuthorizedAdmin(call, server.config, context)) {
             call.respond(HttpStatusCode.Unauthorized, OperationResponse(false, "Unauthorized admin access"))
             return@post
         }
@@ -973,10 +998,11 @@ private fun Route.registerAdminRoutes(context: Context, config: ServerConfig, se
 
     // Admin Remote File Explorer
     get("/api/admin/browse") {
-        if (!isAuthorizedAdmin(call, config, context)) {
+        if (!isAuthorizedAdmin(call, server.config, context)) {
             call.respond(HttpStatusCode.Unauthorized, OperationResponse(false, "Unauthorized admin access"))
             return@get
         }
+        val rootDir = server.rootDir
         val subPath = call.request.queryParameters["path"] ?: "/"
         val targetDir = resolveSafeFile(rootDir, subPath)
         if (!targetDir.exists() || !targetDir.isDirectory) {
@@ -1019,12 +1045,13 @@ private fun Route.registerAdminRoutes(context: Context, config: ServerConfig, se
 
     // Admin Create Share
     post("/api/admin/shares") {
-        if (!isAuthorizedAdmin(call, config, context)) {
+        if (!isAuthorizedAdmin(call, server.config, context)) {
             call.respond(HttpStatusCode.Unauthorized, OperationResponse(false, "Unauthorized admin access"))
             return@post
         }
         try {
             val req = call.receive<CreateShareRequest>()
+            val rootDir = server.rootDir
             val targetFile = resolveSafeFile(rootDir, req.path)
             if (!targetFile.exists()) {
                 call.respond(HttpStatusCode.NotFound, ShareCreatedResponse(false, "Target file does not exist"))
@@ -1072,7 +1099,7 @@ private fun Route.registerAdminRoutes(context: Context, config: ServerConfig, se
 
     // Admin List All Shares
     get("/api/admin/shares") {
-        if (!isAuthorizedAdmin(call, config, context)) {
+        if (!isAuthorizedAdmin(call, server.config, context)) {
             call.respond(HttpStatusCode.Unauthorized, OperationResponse(false, "Unauthorized admin access"))
             return@get
         }
@@ -1082,7 +1109,7 @@ private fun Route.registerAdminRoutes(context: Context, config: ServerConfig, se
 
     // Admin Clear All Shares
     delete("/api/admin/shares") {
-        if (!isAuthorizedAdmin(call, config, context)) {
+        if (!isAuthorizedAdmin(call, server.config, context)) {
             call.respond(HttpStatusCode.Unauthorized, OperationResponse(false, "Unauthorized admin access"))
             return@delete
         }
@@ -1093,7 +1120,7 @@ private fun Route.registerAdminRoutes(context: Context, config: ServerConfig, se
 
     // Admin Revoke / Delete Share
     delete("/api/admin/shares/{id}") {
-        if (!isAuthorizedAdmin(call, config, context)) {
+        if (!isAuthorizedAdmin(call, server.config, context)) {
             call.respond(HttpStatusCode.Unauthorized, OperationResponse(false, "Unauthorized admin access"))
             return@delete
         }
@@ -1116,7 +1143,7 @@ private fun Route.registerAdminRoutes(context: Context, config: ServerConfig, se
     post("/api/admin/register") {
         try {
             val req = call.receive<RegisterDeviceRequest>()
-            if (config.adminSecret.isNotBlank() && req.adminSecret != config.adminSecret) {
+            if (server.config.adminSecret.isNotBlank() && req.adminSecret != server.config.adminSecret) {
                 call.respond(HttpStatusCode.Unauthorized, RegisterDeviceResponse(false, "Invalid admin secret"))
                 return@post
             }
@@ -1133,7 +1160,7 @@ private fun Route.registerAdminRoutes(context: Context, config: ServerConfig, se
                 RegisterDeviceResponse(
                     success = true,
                     message = "Device registered as administrator",
-                    hostDeviceId = config.hostDeviceId,
+                    hostDeviceId = server.config.hostDeviceId,
                     adminToken = assignedToken
                 )
             )
@@ -1193,6 +1220,9 @@ private fun getCurrentNetworkType(context: Context): String {
  * Prevents Directory Traversal Attacks by validating canonical paths.
  */
 private fun resolveSafeFile(rootDir: File, relativePath: String): File {
+    if (rootDir.isFile) {
+        return rootDir
+    }
     val clean = relativePath.trim().removePrefix("/").removePrefix("\\")
     val resolved = File(rootDir, clean).canonicalFile
     val rootCanonical = rootDir.canonicalFile

@@ -33,11 +33,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class HttpServerService : Service() {
 
     private val tag = "HttpServerService"
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val serverMutex = Mutex()
 
     private var embeddedServer: EmbeddedHttpServer? = null
     private var tunnelManager: CloudflareTunnelManager? = null
@@ -164,60 +167,119 @@ class HttpServerService : Service() {
         return START_STICKY
     }
 
-    private var startJob: kotlinx.coroutines.Job? = null
-
     private fun startServerAndTunnel(config: ServerConfig) {
-        startJob?.cancel()
-        startJob = serviceScope.launch {
-            _serverState.value = ServerState.Starting
-            startForegroundWithNotification()
+        serviceScope.launch {
+            serverMutex.withLock {
+                val current = embeddedServer
+                val currentState = _serverState.value
+                val isRunning = current != null && current.isRunning && currentState is ServerState.Running
 
-            try {
-                // 1. Stop any old instance & start Ktor CIO
-                embeddedServer?.stop()
-                val server = EmbeddedHttpServer(applicationContext, config)
-                embeddedServer = server
-                server.start()
+                // Check if hot reload is possible (port and auth did not change)
+                val canHotReload = isRunning &&
+                        current != null &&
+                        current.config.port == config.port &&
+                        current.config.basicAuthEnabled == config.basicAuthEnabled &&
+                        current.config.authUsername == config.authUsername &&
+                        current.config.authPassword == config.authPassword
 
-                // 2. Set Running state IMMEDIATELY (takes < 100ms)
-                val startTime = System.currentTimeMillis()
-                val fallbackInterfaces = listOf(
-                    NetworkInterfaceInfo(
-                        interfaceName = "lo",
-                        displayName = "Localhost",
-                        ipAddress = "127.0.0.1",
-                        port = config.port,
-                        type = com.jarvis.fileserver.model.NetworkType.LOCALHOST
+                if (canHotReload) {
+                    Log.i(tag, "Hot configuration reload without restart: path=${config.rootPath}")
+                    current.updateConfig(config)
+                    _currentConfig.value = config
+                    _serverState.value = (currentState as ServerState.Running).copy(
+                        rootPath = config.rootPath
                     )
-                )
-                _serverState.value = ServerState.Running(
-                    port = config.port,
-                    rootPath = config.rootPath,
-                    startTimeMillis = startTime,
-                    localInterfaces = fallbackInterfaces
-                )
-                updateNotification()
+                    updateNotification()
 
-                // 3. Resolve actual network interfaces asynchronously without blocking server readiness
-                serviceScope.launch(Dispatchers.IO) {
-                    val resolved = NetworkUtils.getActiveNetworkInterfaces(applicationContext, config.port)
-                    val current = _serverState.value
-                    if (current is ServerState.Running) {
-                        _serverState.value = current.copy(localInterfaces = resolved)
-                        updateNotification()
+                    if (config.enableTunnel != current.config.enableTunnel) {
+                        if (config.enableTunnel) {
+                            tunnelManager?.startTunnel(config.port)
+                        } else {
+                            tunnelManager?.stopTunnel()
+                        }
                     }
+                    return@withLock
                 }
 
-                // 4. Handle tunnel if requested
-                if (config.enableTunnel) {
-                    tunnelManager?.startTunnel(config.port)
-                } else {
-                    tunnelManager?.stopTunnel()
+                // Otherwise, a complete clean start or restart is required
+                _serverState.value = ServerState.Starting
+                _currentConfig.value = config
+                startForegroundWithNotification()
+
+                try {
+                    if (current != null) {
+                        Log.i(tag, "Stopping previous server instance before restart...")
+                        current.stop()
+                        embeddedServer = null
+
+                        // Wait for port release by OS
+                        var portFree = false
+                        for (i in 0 until 25) {
+                            if (NetworkUtils.isPortAvailable(config.port)) {
+                                portFree = true
+                                break
+                            }
+                            kotlinx.coroutines.delay(100)
+                        }
+                        if (!portFree) {
+                            Log.w(tag, "Port ${config.port} still busy after 2.5s, pausing 400ms before bind attempt")
+                            kotlinx.coroutines.delay(400)
+                        }
+                    } else {
+                        // Cold start: quick check
+                        if (!NetworkUtils.isPortAvailable(config.port)) {
+                            kotlinx.coroutines.delay(300)
+                        }
+                    }
+
+                    if (!NetworkUtils.isPortAvailable(config.port)) {
+                        throw java.net.BindException("Port ${config.port} is already in use by another application.")
+                    }
+
+                    val server = EmbeddedHttpServer(applicationContext, config)
+                    embeddedServer = server
+                    server.start()
+
+                    // Running state
+                    val startTime = System.currentTimeMillis()
+                    val fallbackInterfaces = listOf(
+                        NetworkInterfaceInfo(
+                            interfaceName = "lo",
+                            displayName = "Localhost",
+                            ipAddress = "127.0.0.1",
+                            port = config.port,
+                            type = com.jarvis.fileserver.model.NetworkType.LOCALHOST
+                        )
+                    )
+                    _serverState.value = ServerState.Running(
+                        port = config.port,
+                        rootPath = config.rootPath,
+                        startTimeMillis = startTime,
+                        localInterfaces = fallbackInterfaces
+                    )
+                    updateNotification()
+
+                    // Resolve network interfaces asynchronously
+                    serviceScope.launch(Dispatchers.IO) {
+                        val resolved = NetworkUtils.getActiveNetworkInterfaces(applicationContext, config.port)
+                        val curr = _serverState.value
+                        if (curr is ServerState.Running) {
+                            _serverState.value = curr.copy(localInterfaces = resolved)
+                            updateNotification()
+                        }
+                    }
+
+                    // Handle tunnel
+                    if (config.enableTunnel) {
+                        tunnelManager?.startTunnel(config.port)
+                    } else {
+                        tunnelManager?.stopTunnel()
+                    }
+                } catch (t: Throwable) {
+                    Log.e(tag, "Failed to start server", t)
+                    _serverState.value = ServerState.Error(t.localizedMessage ?: "Unknown server error")
+                    stopSelfAndCleanupLocked()
                 }
-            } catch (t: Throwable) {
-                Log.e(tag, "Failed to start server", t)
-                _serverState.value = ServerState.Error(t.localizedMessage ?: "Unknown server error")
-                stopSelfAndCleanup()
             }
         }
     }
@@ -371,6 +433,14 @@ class HttpServerService : Service() {
 
     private fun stopSelfAndCleanup() {
         serviceScope.launch {
+            serverMutex.withLock {
+                stopSelfAndCleanupLocked()
+            }
+        }
+    }
+
+    private suspend fun stopSelfAndCleanupLocked() {
+        try {
             tunnelManager?.stopTunnel()
             embeddedServer?.stop()
             embeddedServer = null
@@ -379,6 +449,8 @@ class HttpServerService : Service() {
             releaseLocks()
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
+        } catch (e: Exception) {
+            Log.e(tag, "Error during cleanup", e)
         }
     }
 

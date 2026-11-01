@@ -21,6 +21,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.InsertDriveFile
+import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Button
@@ -31,6 +34,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,6 +65,7 @@ fun HeroServerCard(
     uptimeSeconds: Long,
     onToggleServer: () -> Unit,
     modifier: Modifier = Modifier,
+    sharedPath: String = "",
     isDarkTheme: Boolean = true
 ) {
     val isRunning = serverState is ServerState.Running
@@ -158,6 +163,51 @@ fun HeroServerCard(
                     ),
                     color = if (isRunning) textPrimary else textSecondary
                 )
+            }
+
+            // Shared Scope Tag
+            if (sharedPath.isNotBlank()) {
+                val target = remember(sharedPath) { java.io.File(sharedPath) }
+                val defaultRoot = android.os.Environment.getExternalStorageDirectory().absolutePath
+                val isSingleFile = target.exists() && target.isFile
+                val isDefaultAll = sharedPath.trimEnd('/') == defaultRoot.trimEnd('/')
+
+                val scopeLabel = when {
+                    isSingleFile -> "Sharing File: ${target.name}"
+                    isDefaultAll -> "Entire Internal Storage"
+                    else -> "Folder: ${target.name}"
+                }
+
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (isDarkTheme) Slate800 else LightSurfaceElevated)
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        imageVector = when {
+                            isSingleFile -> Icons.Default.InsertDriveFile
+                            isDefaultAll -> Icons.Default.PhoneAndroid
+                            else -> Icons.Default.Folder
+                        },
+                        contentDescription = null,
+                        modifier = Modifier.size(15.dp),
+                        tint = when {
+                            isSingleFile -> EmeraldLive
+                            isDefaultAll -> CyanNeon
+                            else -> AmberWarn
+                        }
+                    )
+                    Text(
+                        text = scopeLabel,
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                        color = textPrimary,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    )
+                }
             }
 
             // Bottom: Prominent Start / Stop Button

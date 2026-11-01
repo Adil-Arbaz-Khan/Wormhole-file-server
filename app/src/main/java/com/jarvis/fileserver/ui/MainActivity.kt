@@ -72,7 +72,6 @@ import com.jarvis.fileserver.ui.components.HeroServerCard
 import com.jarvis.fileserver.ui.components.QrCodeDialog
 import com.jarvis.fileserver.ui.components.SettingsBottomSheet
 import com.jarvis.fileserver.ui.components.ShareManagementBottomSheet
-import com.jarvis.fileserver.ui.components.SharedScopeCard
 import com.jarvis.fileserver.ui.components.TransferStatsCard
 import com.jarvis.fileserver.ui.components.TunnelControlsCard
 import com.jarvis.fileserver.ui.theme.AmberWarn
@@ -405,19 +404,11 @@ fun DashboardScreen(
                 serverState = serverState,
                 uptimeSeconds = uptimeSeconds,
                 onToggleServer = { viewModel.toggleServer() },
+                sharedPath = config.rootPath,
                 isDarkTheme = isDarkTheme
             )
 
-            // 2. Shared Scope Selection Card (Folder / File Picker)
-            SharedScopeCard(
-                currentRootPath = config.rootPath,
-                onSelectPath = { viewModel.setSharedPath(it) },
-                onPickFolder = onPickFolder,
-                onPickFile = onPickFile,
-                isDarkTheme = isDarkTheme
-            )
-
-            // 3. Connection Addresses Card
+            // 2. Connection Addresses Card
             if (serverState is ServerState.Running) {
                 val running = serverState as ServerState.Running
                 ConnectionAddressesCard(
@@ -487,6 +478,7 @@ fun DashboardScreen(
         ActivityBottomSheet(
             events = activityEvents,
             onDismiss = { viewModel.closeActivitySheet() },
+            onClearActivity = { viewModel.clearActivityLogs() },
             isDarkTheme = isDarkTheme
         )
     }

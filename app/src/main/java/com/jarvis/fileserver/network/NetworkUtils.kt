@@ -16,6 +16,21 @@ object NetworkUtils {
     private const val TAG = "NetworkUtils"
 
     /**
+     * Checks if a local TCP port is currently free and available for binding.
+     */
+    fun isPortAvailable(port: Int): Boolean {
+        return try {
+            java.net.ServerSocket().use { socket ->
+                socket.reuseAddress = true
+                socket.bind(java.net.InetSocketAddress(port))
+                true
+            }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    /**
      * Resolves local network addresses quickly.
      * Uses Android ConnectivityManager & WifiManager first for instant, non-blocking resolution,
      * followed by a fast interface scan.

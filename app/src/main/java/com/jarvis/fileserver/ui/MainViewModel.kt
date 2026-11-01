@@ -253,10 +253,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun setSharedPath(path: String) {
         val newConfig = _config.value.copy(rootPath = path)
         updateConfig(newConfig)
-        val app = getApplication<Application>()
-        if (serverState.value is ServerState.Running) {
-            HttpServerService.startService(app, newConfig)
-        }
     }
 
     fun createTokenShare(
@@ -311,6 +307,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun dismissQr() {
         _activeQrData.value = null
+    }
+
+    fun clearActivityLogs() {
+        ActivityLogger.clear()
     }
 
     fun openSettings() {

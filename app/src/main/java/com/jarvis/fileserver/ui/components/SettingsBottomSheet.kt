@@ -9,6 +9,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,17 +35,21 @@ import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.EditOff
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -104,6 +109,8 @@ fun SettingsBottomSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+    val defaultRoot = remember { android.os.Environment.getExternalStorageDirectory().absolutePath }
+
     var portText by remember { mutableStateOf(currentConfig.port.toString()) }
     var rootPath by remember { mutableStateOf(currentConfig.rootPath) }
     var authEnabled by remember { mutableStateOf(currentConfig.basicAuthEnabled) }
@@ -115,6 +122,10 @@ fun SettingsBottomSheet(
     var remoteServerMode by remember { mutableStateOf(currentConfig.remoteServerModeEnabled) }
     var passwordVisible by remember { mutableStateOf(false) }
     var adminSecretVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(currentConfig.rootPath) {
+        rootPath = currentConfig.rootPath
+    }
 
     val sheetBg = if (isDarkTheme) Slate900 else LightSurface
     val textPrimary = if (isDarkTheme) Color.White else LightTextPrimary
@@ -274,10 +285,80 @@ fun SettingsBottomSheet(
                 onValueChange = { rootPath = it },
                 label = { Text("Shared Storage Path") },
                 singleLine = true,
-                enabled = !isServerRunning,
                 modifier = Modifier.fillMaxWidth(),
                 colors = outlinedTextFieldColors(isDarkTheme)
             )
+
+            // Scope Status Badge
+            val targetFile = remember(rootPath) { java.io.File(rootPath) }
+            val isSingleFile = targetFile.exists() && targetFile.isFile
+            val isDefaultAll = rootPath.trimEnd('/') == defaultRoot.trimEnd('/')
+
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(10.dp),
+                color = if (isDarkTheme) Slate800.copy(alpha = 0.6f) else LightSurfaceElevated,
+                border = androidx.compose.foundation.BorderStroke(1.dp, if (isDarkTheme) Slate700 else LightBorder)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .background(
+                                color = when {
+                                    isSingleFile -> EmeraldOnline.copy(alpha = 0.15f)
+                                    isDefaultAll -> CyanNeon.copy(alpha = 0.15f)
+                                    else -> AmberWarn.copy(alpha = 0.15f)
+                                },
+                                shape = RoundedCornerShape(8.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = when {
+                                isSingleFile -> Icons.Default.InsertDriveFile
+                                isDefaultAll -> Icons.Default.PhoneAndroid
+                                else -> Icons.Default.Folder
+                            },
+                            contentDescription = null,
+                            tint = when {
+                                isSingleFile -> EmeraldOnline
+                                isDefaultAll -> CyanNeon
+                                else -> AmberWarn
+                            },
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = when {
+                                isSingleFile -> "Specific File: ${targetFile.name}"
+                                isDefaultAll -> "Entire Internal Storage"
+                                else -> "Directory: ${targetFile.name}"
+                            },
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                            color = textPrimary,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = when {
+                                isSingleFile -> "${formatSettingsFileSize(targetFile.length())} • Only this file will be shared in browser"
+                                isDefaultAll -> "All phone files and folders are accessible"
+                                else -> "Only files inside this folder are accessible"
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (isSingleFile) EmeraldOnline else textSecondary,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        )
+                    }
+                }
+            }
 
             // Storage Quick Scope Buttons (Equal, uniform 3-tile row with no text wrapping)
             Row(
@@ -286,7 +367,6 @@ fun SettingsBottomSheet(
             ) {
                 Button(
                     onClick = onPickFolder,
-                    enabled = !isServerRunning,
                     modifier = Modifier
                         .weight(1f)
                         .height(42.dp),
@@ -316,7 +396,6 @@ fun SettingsBottomSheet(
 
                 Button(
                     onClick = onPickFile,
-                    enabled = !isServerRunning,
                     modifier = Modifier
                         .weight(1f)
                         .height(42.dp),
@@ -345,8 +424,10 @@ fun SettingsBottomSheet(
                 }
 
                 Button(
-                    onClick = onSelectAllStorage,
-                    enabled = !isServerRunning,
+                    onClick = {
+                        rootPath = defaultRoot
+                        onSelectAllStorage()
+                    },
                     modifier = Modifier
                         .weight(1f)
                         .height(42.dp),
@@ -371,6 +452,44 @@ fun SettingsBottomSheet(
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         softWrap = false
+                    )
+                }
+            }
+
+            // Preset Folder Chips
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val presets = listOf(
+                    "All Storage" to defaultRoot,
+                    "Downloads" to "$defaultRoot/Download",
+                    "DCIM / Photos" to "$defaultRoot/DCIM",
+                    "Documents" to "$defaultRoot/Documents",
+                    "Movies" to "$defaultRoot/Movies",
+                    "Music" to "$defaultRoot/Music"
+                )
+
+                presets.forEach { (label, path) ->
+                    val isSelected = rootPath.trimEnd('/') == path.trimEnd('/')
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { rootPath = path },
+                        label = { Text(label, fontSize = 12.sp) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = CyanNeon.copy(alpha = 0.2f),
+                            selectedLabelColor = if (isDarkTheme) CyanNeon else Color(0xFF0284C7),
+                            containerColor = if (isDarkTheme) Slate800 else LightSurfaceElevated,
+                            labelColor = textSecondary
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = isSelected,
+                            borderColor = if (isDarkTheme) Slate700 else LightBorder,
+                            selectedBorderColor = CyanNeon
+                        )
                     )
                 }
             }
@@ -859,3 +978,10 @@ private fun outlinedTextFieldColors(isDarkTheme: Boolean) = OutlinedTextFieldDef
     disabledBorderColor = if (isDarkTheme) Slate800 else LightBorder,
     disabledTextColor = if (isDarkTheme) Slate400 else LightTextSecondary
 )
+
+private fun formatSettingsFileSize(bytes: Long): String {
+    if (bytes <= 0) return "0 B"
+    val units = arrayOf("B", "KB", "MB", "GB", "TB")
+    val digitGroups = (Math.log10(bytes.toDouble()) / Math.log10(1024.0)).toInt()
+    return String.format(java.util.Locale.US, "%.1f %s", bytes / Math.pow(1024.0, digitGroups.toDouble()), units[digitGroups])
+}
