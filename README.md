@@ -2,7 +2,7 @@
 
   <img src="screenshots/logo.png" alt="Wormhole Logo" width="140" height="140" style="object-fit: contain; filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.4));" />
 
-  # 🌌 Wormhole v2.0 
+  # 🌌 Wormhole v2 
   ### *High-Performance Android HTTP Gateway, Dual-Mode Remote Storage Server & Instant Global Cloudflare Tunnel*
 
   [![Platform](https://img.shields.io/badge/Platform-Android%208.0%2B%20(API%2026%2B)-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://android.com)
