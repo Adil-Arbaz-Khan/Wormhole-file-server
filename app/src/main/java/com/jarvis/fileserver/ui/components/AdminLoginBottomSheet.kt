@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.BatteryStd
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudDone
+import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Lock
@@ -150,6 +151,7 @@ fun AdminLoginBottomSheet(
 
             if (remoteStatus == null) {
                 // Connection Form
+                val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
                 Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     OutlinedTextField(
                         value = hostUrl,
@@ -158,6 +160,23 @@ fun AdminLoginBottomSheet(
                         placeholder = { Text("e.g. https://*.trycloudflare.com or http://192.168.1.50:8080") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
+                        trailingIcon = {
+                            if (hostUrl.isEmpty()) {
+                                IconButton(onClick = {
+                                    val clip = clipboardManager.getText()?.text
+                                    if (!clip.isNullOrBlank()) {
+                                        hostUrl = clip.trim()
+                                    }
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Default.ContentPaste,
+                                        contentDescription = "Paste URL",
+                                        tint = CyanNeon,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                        },
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = CyanNeon,
                             unfocusedBorderColor = if (isDarkTheme) Slate700 else LightBorder,
@@ -170,18 +189,45 @@ fun AdminLoginBottomSheet(
                         value = adminToken,
                         onValueChange = { adminToken = it },
                         label = { Text("Admin Secret / Bearer Token") },
-                        placeholder = { Text("Copy from Phone B's Settings") },
+                        placeholder = { Text("Enter stark_admin_2026 or paste from Host") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         visualTransformation = if (tokenVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
-                            IconButton(onClick = { tokenVisible = !tokenVisible }) {
-                                Icon(
-                                    imageVector = if (tokenVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                    contentDescription = "Toggle token visibility",
-                                    tint = textSecondary
-                                )
+                            Row {
+                                if (adminToken.isEmpty()) {
+                                    IconButton(onClick = {
+                                        val clip = clipboardManager.getText()?.text
+                                        if (!clip.isNullOrBlank()) {
+                                            adminToken = clip.trim()
+                                        } else {
+                                            adminToken = "stark_admin_2026"
+                                        }
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Default.ContentPaste,
+                                            contentDescription = "Paste Secret",
+                                            tint = CyanNeon,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                }
+                                IconButton(onClick = { tokenVisible = !tokenVisible }) {
+                                    Icon(
+                                        imageVector = if (tokenVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                        contentDescription = "Toggle token visibility",
+                                        tint = textSecondary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
                             }
+                        },
+                        supportingText = {
+                            Text(
+                                text = "Default master secret: stark_admin_2026",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = CyanNeon
+                            )
                         },
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = CyanNeon,
@@ -216,7 +262,12 @@ fun AdminLoginBottomSheet(
                             errorMessage = null
                             scope.launch {
                                 try {
-                                    val cleanUrl = hostUrl.trim().removeSuffix("/")
+                                    val rawUrl = hostUrl.trim().removeSuffix("/")
+                                    val cleanUrl = if (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://")) {
+                                        if (rawUrl.contains("trycloudflare.com")) "https://$rawUrl" else "http://$rawUrl"
+                                    } else {
+                                        rawUrl
+                                    }
                                     val statusUrl = "$cleanUrl/api/admin/status"
                                     val result = withContext(Dispatchers.IO) {
                                         val conn = (URL(statusUrl).openConnection() as HttpURLConnection).apply {

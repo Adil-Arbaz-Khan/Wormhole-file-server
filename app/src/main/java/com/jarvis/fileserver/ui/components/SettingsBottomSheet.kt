@@ -19,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Dns
@@ -603,17 +604,32 @@ fun SettingsBottomSheet(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier.fillMaxWidth()
                         ) {
+                            val context = androidx.compose.ui.platform.LocalContext.current
+                            val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
+                            val displaySecret = currentConfig.adminSecret.ifBlank { "stark_admin_2026" }
+
                             Text(
-                                text = "Admin Secret: ${if (adminSecretVisible) currentConfig.adminSecret.ifBlank { "Auto-generated" } else "••••••••••••••••••••"}",
+                                text = "Admin Secret: ${if (adminSecretVisible) displaySecret else "••••••••••••••••••••"}",
                                 style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
                                 color = textPrimary,
                                 modifier = Modifier.weight(1f)
                             )
-                            IconButton(onClick = { adminSecretVisible = !adminSecretVisible }, modifier = Modifier.size(24.dp)) {
+                            IconButton(onClick = { adminSecretVisible = !adminSecretVisible }, modifier = Modifier.size(28.dp)) {
                                 Icon(
                                     imageVector = if (adminSecretVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                                     contentDescription = null,
                                     tint = textSecondary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                            IconButton(onClick = {
+                                clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(displaySecret))
+                                android.widget.Toast.makeText(context, "Admin secret copied", android.widget.Toast.LENGTH_SHORT).show()
+                            }, modifier = Modifier.size(28.dp)) {
+                                Icon(
+                                    imageVector = Icons.Default.ContentCopy,
+                                    contentDescription = "Copy Secret",
+                                    tint = accentColor,
                                     modifier = Modifier.size(16.dp)
                                 )
                             }
