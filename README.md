@@ -6,7 +6,7 @@
   ### *High-Performance Android HTTP Gateway, Dual-Mode Remote Storage Server & Instant Global Cloudflare Tunnel*
 
   [![Platform](https://img.shields.io/badge/Platform-Android%208.0%2B%20(API%2026%2B)-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://android.com)
-  [![Version](https://img.shields.io/badge/Release-v2.0.0-00E5FF?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Adil-Arbaz-Khan)
+  [![Version](https://img.shields.io/badge/Release-v2.1-00E5FF?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Adil-Arbaz-Khan)
   [![Language](https://img.shields.io/badge/Language-Kotlin%202.0-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org)
   [![UI](https://img.shields.io/badge/UI-Jetpack%20Compose%20%26%20M3-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
   [![Engine](https://img.shields.io/badge/Server-Ktor%20CIO-F68B1F?style=for-the-badge&logo=ktor&logoColor=white)](https://ktor.io)
