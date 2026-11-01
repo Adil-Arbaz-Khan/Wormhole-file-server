@@ -1,8 +1,8 @@
 package com.jarvis.fileserver.ui.components
 
-import android.os.Environment
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,20 +15,20 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.EditOff
-import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.RestartAlt
-import androidx.compose.material.icons.filled.UploadFile
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -41,6 +41,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -52,16 +53,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jarvis.fileserver.model.ServerConfig
 import com.jarvis.fileserver.ui.theme.CyanNeon
-import com.jarvis.fileserver.ui.theme.EmeraldLive
 import com.jarvis.fileserver.ui.theme.LightBorder
 import com.jarvis.fileserver.ui.theme.LightSurface
 import com.jarvis.fileserver.ui.theme.LightSurfaceElevated
@@ -76,12 +77,15 @@ import com.jarvis.fileserver.ui.theme.Slate900
 @Composable
 fun SettingsBottomSheet(
     currentConfig: ServerConfig,
-    isServerRunning: Boolean,
     isDarkTheme: Boolean,
-    onToggleDarkTheme: (Boolean) -> Unit,
+    isServerRunning: Boolean,
     onSaveConfig: (ServerConfig) -> Unit,
-    onPickDirectory: () -> Unit,
+    onSelectDarkTheme: (Boolean) -> Unit,
+    onPickFolder: () -> Unit,
     onPickFile: () -> Unit,
+    onSelectAllStorage: () -> Unit,
+    onOpenAdminLogin: () -> Unit,
+    onOpenShareManagement: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -94,7 +98,9 @@ fun SettingsBottomSheet(
     var clipboardEnabled by remember { mutableStateOf(currentConfig.clipboardEnabled) }
     var readOnly by remember { mutableStateOf(currentConfig.readOnly) }
     var uploadDisabled by remember { mutableStateOf(currentConfig.uploadDisabled) }
+    var remoteServerMode by remember { mutableStateOf(currentConfig.remoteServerModeEnabled) }
     var passwordVisible by remember { mutableStateOf(false) }
+    var adminSecretVisible by remember { mutableStateOf(false) }
 
     val sheetBg = if (isDarkTheme) Slate900 else LightSurface
     val textPrimary = if (isDarkTheme) Color.White else LightTextPrimary
@@ -131,120 +137,166 @@ fun SettingsBottomSheet(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Button(
-                        onClick = { onToggleDarkTheme(true) },
-                        modifier = Modifier.weight(1f).height(46.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isDarkTheme) CyanNeon else (if (isDarkTheme) Slate800 else LightSurfaceElevated),
-                            contentColor = if (isDarkTheme) Slate900 else textPrimary
-                        ),
-                        border = if (!isDarkTheme) BorderStroke(1.dp, LightBorder) else null
+                    // Dark Mode Option Card
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .border(
+                                width = if (isDarkTheme) 2.dp else 1.dp,
+                                color = if (isDarkTheme) accentColor else (if (isDarkTheme) Slate800 else LightBorder),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .clickable { onSelectDarkTheme(true) },
+                        color = if (isDarkTheme) (if (isDarkTheme) Slate800 else LightSurfaceElevated) else (if (isDarkTheme) Slate900 else LightSurface)
                     ) {
-                        Icon(imageVector = Icons.Default.DarkMode, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("Dark Mode", fontWeight = FontWeight.Bold)
+                        Row(
+                            modifier = Modifier.padding(vertical = 12.dp, horizontal = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.DarkMode,
+                                contentDescription = null,
+                                tint = if (isDarkTheme) accentColor else textSecondary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = "Dark Mode",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = if (isDarkTheme) FontWeight.Bold else FontWeight.Normal),
+                                color = if (isDarkTheme) textPrimary else textSecondary
+                            )
+                        }
                     }
 
-                    Button(
-                        onClick = { onToggleDarkTheme(false) },
-                        modifier = Modifier.weight(1f).height(46.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (!isDarkTheme) Color(0xFF0284C7) else Slate800,
-                            contentColor = if (!isDarkTheme) Color.White else textPrimary
-                        ),
-                        border = if (isDarkTheme) BorderStroke(1.dp, Slate700) else null
+                    // Light Mode Option Card
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .border(
+                                width = if (!isDarkTheme) 2.dp else 1.dp,
+                                color = if (!isDarkTheme) accentColor else (if (isDarkTheme) Slate800 else LightBorder),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .clickable { onSelectDarkTheme(false) },
+                        color = if (!isDarkTheme) (if (isDarkTheme) Slate800 else LightSurfaceElevated) else (if (isDarkTheme) Slate900 else LightSurface)
                     ) {
-                        Icon(imageVector = Icons.Default.LightMode, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("Light Mode", fontWeight = FontWeight.Bold)
+                        Row(
+                            modifier = Modifier.padding(vertical = 12.dp, horizontal = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.LightMode,
+                                contentDescription = null,
+                                tint = if (!isDarkTheme) accentColor else textSecondary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = "Light Mode",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = if (!isDarkTheme) FontWeight.Bold else FontWeight.Normal),
+                                color = if (!isDarkTheme) textPrimary else textSecondary
+                            )
+                        }
                     }
                 }
             }
 
             if (isServerRunning) {
-                Text(
-                    text = "Note: Stop the active server before altering port, storage path, or auth parameters.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (isDarkTheme) CyanNeon else Color(0xFF0284C7)
-                )
+                Surface(
+                    color = Color(0xFFF59E0B).copy(alpha = 0.12f),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Note: Stop the active server before altering port, storage path, or auth parameters.",
+                        color = Color(0xFFF59E0B),
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
             }
 
-            // Port Configuration
+            // Server Port
             OutlinedTextField(
                 value = portText,
-                onValueChange = { if (it.length <= 5) portText = it },
+                onValueChange = { portText = it },
                 label = { Text("Server Port") },
-                leadingIcon = {
-                    Icon(imageVector = Icons.Default.Numbers, contentDescription = null, tint = accentColor)
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 enabled = !isServerRunning,
                 modifier = Modifier.fillMaxWidth(),
                 colors = outlinedTextFieldColors(isDarkTheme)
             )
 
-            // Storage Root Directory
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = rootPath,
-                    onValueChange = { rootPath = it },
-                    label = { Text("Shared Folder / File Path") },
-                    leadingIcon = {
-                        Icon(imageVector = Icons.Default.Folder, contentDescription = null, tint = accentColor)
-                    },
-                    singleLine = true,
+            // Storage Path
+            OutlinedTextField(
+                value = rootPath,
+                onValueChange = { rootPath = it },
+                label = { Text("Shared Folder / File Path") },
+                singleLine = true,
+                enabled = !isServerRunning,
+                modifier = Modifier.fillMaxWidth(),
+                colors = outlinedTextFieldColors(isDarkTheme)
+            )
+
+            // Storage Quick Scope Buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = onPickFolder,
                     enabled = !isServerRunning,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = outlinedTextFieldColors(isDarkTheme)
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isDarkTheme) Slate800 else LightSurfaceElevated,
+                        contentColor = textPrimary
+                    )
                 ) {
-                    OutlinedButton(
-                        onClick = onPickDirectory,
-                        modifier = Modifier.weight(1f).height(38.dp),
-                        enabled = !isServerRunning
-                    ) {
-                        Icon(imageVector = Icons.Default.Folder, contentDescription = null, modifier = Modifier.size(16.dp), tint = accentColor)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Pick Folder", fontSize = 12.sp, color = textPrimary)
-                    }
+                    Icon(imageVector = Icons.Default.FolderOpen, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Pick Folder", fontSize = 12.sp)
+                }
 
-                    OutlinedButton(
-                        onClick = onPickFile,
-                        modifier = Modifier.weight(1f).height(38.dp),
-                        enabled = !isServerRunning
-                    ) {
-                        Icon(imageVector = Icons.Default.UploadFile, contentDescription = null, modifier = Modifier.size(16.dp), tint = EmeraldLive)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Pick File", fontSize = 12.sp, color = textPrimary)
-                    }
+                Button(
+                    onClick = onPickFile,
+                    enabled = !isServerRunning,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isDarkTheme) Slate800 else LightSurfaceElevated,
+                        contentColor = textPrimary
+                    )
+                ) {
+                    Icon(imageVector = Icons.Default.InsertDriveFile, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Pick File", fontSize = 12.sp)
+                }
 
-                    OutlinedButton(
-                        onClick = { rootPath = Environment.getExternalStorageDirectory().absolutePath },
-                        modifier = Modifier.height(38.dp),
-                        enabled = !isServerRunning
-                    ) {
-                        Icon(imageVector = Icons.Default.RestartAlt, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("All", fontSize = 12.sp, color = textPrimary)
-                    }
+                Button(
+                    onClick = onSelectAllStorage,
+                    enabled = !isServerRunning,
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isDarkTheme) Slate800 else LightSurfaceElevated,
+                        contentColor = textPrimary
+                    )
+                ) {
+                    Icon(imageVector = Icons.Default.Storage, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("All", fontSize = 12.sp)
                 }
             }
 
-            // Security & Restrictions Section
             Text(
                 text = "ACCESS & RESTRICTIONS",
                 style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.2.sp, fontWeight = FontWeight.Bold),
                 color = textSecondary
             )
 
-            // Read Only Mode Toggle
+            // Read Only Mode
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -297,7 +349,7 @@ fun SettingsBottomSheet(
                 )
             }
 
-            // Prevent File Upload Toggle
+            // Prevent File Upload
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -473,7 +525,137 @@ fun SettingsBottomSheet(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            // Remote Server Mode (Mode B - Optional Advanced Feature)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .background(
+                                if (remoteServerMode) accentColor.copy(alpha = 0.15f) else (if (isDarkTheme) Slate800 else LightSurfaceElevated),
+                                RoundedCornerShape(10.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Dns,
+                            contentDescription = null,
+                            tint = if (remoteServerMode) accentColor else textSecondary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Column {
+                        Text(
+                            text = "Remote Server Mode",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = textPrimary
+                        )
+                        Text(
+                            text = "Designates this phone as a remotely manageable storage host",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = textSecondary
+                        )
+                    }
+                }
+
+                Switch(
+                    checked = remoteServerMode,
+                    onCheckedChange = { remoteServerMode = it },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = accentColor,
+                        uncheckedThumbColor = textSecondary,
+                        uncheckedTrackColor = if (isDarkTheme) Slate800 else LightBorder
+                    )
+                )
+            }
+
+            if (remoteServerMode) {
+                Surface(
+                    color = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF1F5F9),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            text = "HOST REGISTRATION CREDENTIALS",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
+                            color = accentColor
+                        )
+                        Text(
+                            text = "Device ID: ${currentConfig.hostDeviceId.ifBlank { "wormhole-host" }}",
+                            style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                            color = textPrimary
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "Admin Secret: ${if (adminSecretVisible) currentConfig.adminSecret.ifBlank { "Auto-generated" } else "••••••••••••••••••••"}",
+                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                                color = textPrimary,
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(onClick = { adminSecretVisible = !adminSecretVisible }, modifier = Modifier.size(24.dp)) {
+                                Icon(
+                                    imageVector = if (adminSecretVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                    contentDescription = null,
+                                    tint = textSecondary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+
+                        OutlinedButton(
+                            onClick = onOpenShareManagement,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("Manage Token Shares", color = accentColor, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+                }
+            }
+
+            // Administrator Remote Control Entry Point (Phone A -> Phone B)
+            OutlinedButton(
+                onClick = {
+                    onDismiss()
+                    onOpenAdminLogin()
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, if (isDarkTheme) Slate700 else LightBorder)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(vertical = 4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AdminPanelSettings,
+                        contentDescription = null,
+                        tint = CyanNeon,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text("Login as Admin (Manage Remote Host)", color = textPrimary, fontWeight = FontWeight.SemiBold)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
 
             // Save Button
             Button(
@@ -488,7 +670,8 @@ fun SettingsBottomSheet(
                             authPassword = password,
                             clipboardEnabled = clipboardEnabled,
                             readOnly = readOnly,
-                            uploadDisabled = uploadDisabled
+                            uploadDisabled = uploadDisabled,
+                            remoteServerModeEnabled = remoteServerMode
                         )
                     )
                     onDismiss()
@@ -501,8 +684,8 @@ fun SettingsBottomSheet(
             ) {
                 Text(
                     text = "Apply Configuration",
-                    color = if (isDarkTheme) Slate900 else Color.White,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = Color(0xFF020617)
                 )
             }
         }
@@ -513,11 +696,8 @@ fun SettingsBottomSheet(
 private fun outlinedTextFieldColors(isDarkTheme: Boolean) = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = if (isDarkTheme) CyanNeon else Color(0xFF0284C7),
     unfocusedBorderColor = if (isDarkTheme) Slate700 else LightBorder,
-    focusedLabelColor = if (isDarkTheme) CyanNeon else Color(0xFF0284C7),
-    unfocusedLabelColor = if (isDarkTheme) Slate400 else LightTextSecondary,
-    cursorColor = if (isDarkTheme) CyanNeon else Color(0xFF0284C7),
     focusedTextColor = if (isDarkTheme) Color.White else LightTextPrimary,
     unfocusedTextColor = if (isDarkTheme) Color.White else LightTextPrimary,
-    disabledTextColor = if (isDarkTheme) Slate400 else LightTextSecondary,
-    disabledBorderColor = if (isDarkTheme) Slate800 else LightBorder
+    disabledBorderColor = if (isDarkTheme) Slate800 else LightBorder,
+    disabledTextColor = if (isDarkTheme) Slate400 else LightTextSecondary
 )

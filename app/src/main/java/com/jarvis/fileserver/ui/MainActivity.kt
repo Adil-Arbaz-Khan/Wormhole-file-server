@@ -62,12 +62,17 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.jarvis.fileserver.R
 import com.jarvis.fileserver.model.ServerState
+import com.jarvis.fileserver.model.TunnelState
+import com.jarvis.fileserver.ui.components.ActivityBottomSheet
+import com.jarvis.fileserver.ui.components.AdminLoginBottomSheet
 import com.jarvis.fileserver.ui.components.ClipboardBottomSheet
 import com.jarvis.fileserver.ui.components.ConnectionAddressesCard
 import com.jarvis.fileserver.ui.components.HeroServerCard
 import com.jarvis.fileserver.ui.components.QrCodeDialog
 import com.jarvis.fileserver.ui.components.SettingsBottomSheet
+import com.jarvis.fileserver.ui.components.ShareManagementBottomSheet
 import com.jarvis.fileserver.ui.components.SharedScopeCard
+import com.jarvis.fileserver.ui.components.TransferStatsCard
 import com.jarvis.fileserver.ui.components.TunnelControlsCard
 import com.jarvis.fileserver.ui.theme.AmberWarn
 import com.jarvis.fileserver.ui.theme.CyanNeon
@@ -258,6 +263,12 @@ fun DashboardScreen(
     val unreadClipboardCount by viewModel.unreadClipboardCount.collectAsState()
     val isClipboardOpen by viewModel.isClipboardOpen.collectAsState()
     val clipboardItems by viewModel.clipboardItems.collectAsState()
+    val trafficSnapshot by viewModel.trafficSnapshot.collectAsState()
+    val activityEvents by viewModel.activityEvents.collectAsState()
+    val isActivitySheetOpen by viewModel.isActivitySheetOpen.collectAsState()
+    val isAdminLoginOpen by viewModel.isAdminLoginOpen.collectAsState()
+    val isShareManagementOpen by viewModel.isShareManagementOpen.collectAsState()
+    val activeShares by viewModel.activeShares.collectAsState()
 
     val isRunning = serverState is ServerState.Running
 
@@ -421,6 +432,15 @@ fun DashboardScreen(
                 isDarkTheme = isDarkTheme
             )
 
+            // 5. Live Bandwidth & Activity Card
+            if (isRunning) {
+                TransferStatsCard(
+                    snapshot = trafficSnapshot,
+                    onViewActivity = { viewModel.openActivitySheet() },
+                    isDarkTheme = isDarkTheme
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
@@ -439,13 +459,49 @@ fun DashboardScreen(
     if (isSettingsOpen) {
         SettingsBottomSheet(
             currentConfig = config,
-            isServerRunning = isRunning,
             isDarkTheme = isDarkTheme,
-            onToggleDarkTheme = { viewModel.setDarkTheme(it) },
+            isServerRunning = isRunning,
             onSaveConfig = { viewModel.updateConfig(it) },
-            onPickDirectory = onPickFolder,
+            onSelectDarkTheme = { viewModel.setDarkTheme(it) },
+            onPickFolder = onPickFolder,
             onPickFile = onPickFile,
+            onSelectAllStorage = { viewModel.setSharedPath(android.os.Environment.getExternalStorageDirectory().absolutePath) },
+            onOpenAdminLogin = { viewModel.openAdminLogin() },
+            onOpenShareManagement = { viewModel.openShareManagement() },
             onDismiss = { viewModel.closeSettings() }
+        )
+    }
+
+    // Recent Activity Bottom Sheet
+    if (isActivitySheetOpen) {
+        ActivityBottomSheet(
+            events = activityEvents,
+            onDismiss = { viewModel.closeActivitySheet() },
+            isDarkTheme = isDarkTheme
+        )
+    }
+
+    // Admin Login / Remote Device Manager Bottom Sheet
+    if (isAdminLoginOpen) {
+        AdminLoginBottomSheet(
+            onDismiss = { viewModel.closeAdminLogin() },
+            isDarkTheme = isDarkTheme
+        )
+    }
+
+    // Secure Share Management Bottom Sheet
+    if (isShareManagementOpen) {
+        val primaryIp = (serverState as? ServerState.Running)?.localInterfaces?.firstOrNull { it.ipAddress != "127.0.0.1" }?.ipAddress ?: "127.0.0.1"
+        val tunnelUrl = (tunnelState as? TunnelState.Connected)?.url
+        val baseShareUrl = tunnelUrl ?: "http://$primaryIp:${config.port}"
+
+        ShareManagementBottomSheet(
+            shares = activeShares,
+            baseUrl = baseShareUrl,
+            onCopyShareLink = onCopyUrl,
+            onRevokeShare = { viewModel.revokeShare(it) },
+            onDismiss = { viewModel.closeShareManagement() },
+            isDarkTheme = isDarkTheme
         )
     }
 

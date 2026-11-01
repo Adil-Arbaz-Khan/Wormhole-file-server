@@ -32,7 +32,15 @@ data class ServerStatusResponse(
     val totalSpaceBytes: Long,
     val clipboardEnabled: Boolean = false,
     val readOnly: Boolean = false,
-    val uploadDisabled: Boolean = false
+    val uploadDisabled: Boolean = false,
+    val uploadSpeedBps: Long = 0L,
+    val downloadSpeedBps: Long = 0L,
+    val totalBytesSent: Long = 0L,
+    val totalBytesReceived: Long = 0L,
+    val activeConnections: Int = 0,
+    val activeVisitorsCount: Int = 0,
+    val uptimeSeconds: Long = 0L,
+    val remoteServerMode: Boolean = false
 )
 
 @Serializable

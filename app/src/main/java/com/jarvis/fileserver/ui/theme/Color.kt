@@ -14,6 +14,7 @@ val Slate200 = Color(0xFFE2E8F0)
 val CyanNeon = Color(0xFF38BDF8)
 val CyanGlow = Color(0x3338BDF8)
 val EmeraldLive = Color(0xFF34D399)
+val EmeraldOnline = EmeraldLive
 val EmeraldGlow = Color(0x3334D399)
 val AmberWarn = Color(0xFFFBBF24)
 val RoseError = Color(0xFFF87171)

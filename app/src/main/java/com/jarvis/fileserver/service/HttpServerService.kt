@@ -62,6 +62,10 @@ class HttpServerService : Service() {
         const val EXTRA_CLIPBOARD_ENABLED = "EXTRA_CLIPBOARD_ENABLED"
         const val EXTRA_READ_ONLY = "EXTRA_READ_ONLY"
         const val EXTRA_UPLOAD_DISABLED = "EXTRA_UPLOAD_DISABLED"
+        const val EXTRA_REMOTE_SERVER_MODE = "EXTRA_REMOTE_SERVER_MODE"
+        const val EXTRA_HOST_DEVICE_ID = "EXTRA_HOST_DEVICE_ID"
+        const val EXTRA_ADMIN_SECRET = "EXTRA_ADMIN_SECRET"
+        const val EXTRA_NETWORK_PREF = "EXTRA_NETWORK_PREF"
 
         private val _serverState = MutableStateFlow<ServerState>(ServerState.Idle)
         val serverState: StateFlow<ServerState> = _serverState.asStateFlow()
@@ -84,6 +88,10 @@ class HttpServerService : Service() {
                 putExtra(EXTRA_CLIPBOARD_ENABLED, config.clipboardEnabled)
                 putExtra(EXTRA_READ_ONLY, config.readOnly)
                 putExtra(EXTRA_UPLOAD_DISABLED, config.uploadDisabled)
+                putExtra(EXTRA_REMOTE_SERVER_MODE, config.remoteServerModeEnabled)
+                putExtra(EXTRA_HOST_DEVICE_ID, config.hostDeviceId)
+                putExtra(EXTRA_ADMIN_SECRET, config.adminSecret)
+                putExtra(EXTRA_NETWORK_PREF, config.networkPreference)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
@@ -135,7 +143,11 @@ class HttpServerService : Service() {
                     authPassword = intent.getStringExtra(EXTRA_PASSWORD) ?: "",
                     clipboardEnabled = intent.getBooleanExtra(EXTRA_CLIPBOARD_ENABLED, false),
                     readOnly = intent.getBooleanExtra(EXTRA_READ_ONLY, false),
-                    uploadDisabled = intent.getBooleanExtra(EXTRA_UPLOAD_DISABLED, false)
+                    uploadDisabled = intent.getBooleanExtra(EXTRA_UPLOAD_DISABLED, false),
+                    remoteServerModeEnabled = intent.getBooleanExtra(EXTRA_REMOTE_SERVER_MODE, false),
+                    hostDeviceId = intent.getStringExtra(EXTRA_HOST_DEVICE_ID) ?: _currentConfig.value.hostDeviceId,
+                    adminSecret = intent.getStringExtra(EXTRA_ADMIN_SECRET) ?: _currentConfig.value.adminSecret,
+                    networkPreference = intent.getStringExtra(EXTRA_NETWORK_PREF) ?: _currentConfig.value.networkPreference
                 )
                 _currentConfig.value = config
                 startServerAndTunnel(config)
