@@ -65,6 +65,7 @@ import com.jarvis.fileserver.model.ServerState
 import com.jarvis.fileserver.model.TunnelState
 import com.jarvis.fileserver.ui.components.ActivityBottomSheet
 import com.jarvis.fileserver.ui.components.AdminLoginBottomSheet
+import com.jarvis.fileserver.ui.components.RemoteHostControlScreen
 import com.jarvis.fileserver.ui.components.ClipboardBottomSheet
 import com.jarvis.fileserver.ui.components.ConnectionAddressesCard
 import com.jarvis.fileserver.ui.components.HeroServerCard
@@ -272,7 +273,13 @@ fun DashboardScreen(
 
     val isRunning = serverState is ServerState.Running
 
-    Scaffold(
+    if (isAdminLoginOpen) {
+        RemoteHostControlScreen(
+            onLogout = { viewModel.closeAdminLogin() },
+            isDarkTheme = isDarkTheme
+        )
+    } else {
+        Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -466,7 +473,10 @@ fun DashboardScreen(
             onPickFolder = onPickFolder,
             onPickFile = onPickFile,
             onSelectAllStorage = { viewModel.setSharedPath(android.os.Environment.getExternalStorageDirectory().absolutePath) },
-            onOpenAdminLogin = { viewModel.openAdminLogin() },
+            onOpenAdminLogin = {
+                viewModel.closeSettings()
+                viewModel.openAdminLogin()
+            },
             onOpenShareManagement = { viewModel.openShareManagement() },
             onDismiss = { viewModel.closeSettings() }
         )
@@ -477,14 +487,6 @@ fun DashboardScreen(
         ActivityBottomSheet(
             events = activityEvents,
             onDismiss = { viewModel.closeActivitySheet() },
-            isDarkTheme = isDarkTheme
-        )
-    }
-
-    // Admin Login / Remote Device Manager Bottom Sheet
-    if (isAdminLoginOpen) {
-        AdminLoginBottomSheet(
-            onDismiss = { viewModel.closeAdminLogin() },
             isDarkTheme = isDarkTheme
         )
     }
@@ -515,5 +517,6 @@ fun DashboardScreen(
             onDismiss = { viewModel.closeClipboard() },
             isDarkTheme = isDarkTheme
         )
+    }
     }
 }

@@ -459,7 +459,11 @@ private fun Route.registerAppRoutes(context: Context, config: ServerConfig, serv
                 isImageMime(mime, targetFile.extension) ||
                 isTextMime(mime, targetFile.extension)
 
-        val disposition = if (isMedia) "inline" else "attachment; filename=\"${targetFile.name}\""
+        val isForceDownload = call.request.queryParameters["dl"] == "1" ||
+                call.request.queryParameters["download"] == "true" ||
+                call.request.queryParameters["download"] == "1"
+
+        val disposition = if (isMedia && !isForceDownload) "inline" else "attachment; filename=\"${targetFile.name}\""
         call.response.header(HttpHeaders.ContentDisposition, disposition)
         call.response.header(HttpHeaders.AcceptRanges, "bytes")
         call.response.header(HttpHeaders.ContentType, mime)
@@ -767,7 +771,14 @@ private fun Route.registerShareRoutes(context: Context, config: ServerConfig) {
             ShareRepository.incrementAccessCount(token)
             ActivityLogger.log(ActivityType.FILE_STREAMED, "Share Accessed", share.name)
 
-            val targetFile = File(share.targetPath)
+            val subPath = call.request.queryParameters["path"] ?: ""
+            val baseFile = File(share.targetPath)
+            val targetFile = if (share.isDirectory && subPath.isNotBlank()) {
+                resolveSafeFile(baseFile, subPath)
+            } else {
+                baseFile
+            }
+
             if (!targetFile.exists()) {
                 call.respondText(
                     ShareHtmlRenderer.renderShareErrorPage("File Not Found", "The requested file or folder no longer exists on the host device."),
@@ -778,7 +789,11 @@ private fun Route.registerShareRoutes(context: Context, config: ServerConfig) {
             }
 
             if (share.isDirectory) {
-                call.respondText(ShareHtmlRenderer.renderFolderSharePage(share, providedPw), ContentType.Text.Html)
+                if (targetFile.isDirectory) {
+                    call.respondText(ShareHtmlRenderer.renderFolderSharePage(share, providedPw, subPath), ContentType.Text.Html)
+                } else {
+                    call.respondText(ShareHtmlRenderer.renderFileSharePage(share, targetFile, providedPw), ContentType.Text.Html)
+                }
             } else {
                 call.respondText(ShareHtmlRenderer.renderFileSharePage(share, targetFile, providedPw), ContentType.Text.Html)
             }
@@ -835,7 +850,16 @@ private fun Route.registerShareRoutes(context: Context, config: ServerConfig) {
             return@get
         }
 
-        val disposition = if (isMedia) "inline" else "attachment; filename=\"${targetFile.name}\""
+        val isForceDownload = call.request.queryParameters["dl"] == "1" ||
+                call.request.queryParameters["download"] == "true" ||
+                call.request.queryParameters["download"] == "1"
+
+        if (isForceDownload && !share.allowDownload) {
+            call.respond(HttpStatusCode.Forbidden, "Direct file download is disabled for this stream-only share")
+            return@get
+        }
+
+        val disposition = if (isMedia && !isForceDownload) "inline" else "attachment; filename=\"${targetFile.name}\""
         call.response.header(HttpHeaders.ContentDisposition, disposition)
         call.response.header(HttpHeaders.AcceptRanges, "bytes")
         call.response.header(HttpHeaders.ContentType, mime)
