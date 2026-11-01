@@ -6,11 +6,10 @@
 /build
 /captures
 /logo/
-/releases/
-.externalNativeBuild
-.cxx
+# Allow releases directory to hold distributable APKs
+!/releases/
 *.apk
-!releases/*.apk
+!/releases/*.apk
 *.aab
 output.json
 
