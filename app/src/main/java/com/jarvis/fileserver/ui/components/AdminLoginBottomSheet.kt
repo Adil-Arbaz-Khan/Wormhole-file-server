@@ -166,11 +166,8 @@ fun RemoteHostControlScreen(
     // Active Shares State
     var sharesList by remember { mutableStateOf<List<ShareRecord>>(emptyList()) }
     var isLoadingShares by remember { mutableStateOf(false) }
-
-    // Security Settings State
-    var remoteReadOnly by remember { mutableStateOf(false) }
-    var remoteUploadDisabled by remember { mutableStateOf(false) }
-    var isUpdatingSecurity by remember { mutableStateOf(false) }
+    var isClearingAll by remember { mutableStateOf(false) }
+    var showClearAllConfirm by remember { mutableStateOf(false) }
 
     // Create Share Dialog State
     var itemToShare by remember { mutableStateOf<FileItemDto?>(null) }
@@ -272,25 +269,39 @@ fun RemoteHostControlScreen(
         }
     }
 
-    // Update Remote Security Policies
-    fun updateSecuritySettings(newReadOnly: Boolean, newUploadDisabled: Boolean) {
+    // Delete a single revoked share record
+    fun deleteShare(shareId: String) {
         scope.launch {
-            isUpdatingSecurity = true
             try {
-                val req = AdminSecuritySettingsRequest(readOnly = newReadOnly, uploadDisabled = newUploadDisabled)
-                val body = jsonParser.encodeToString(req)
-                val (code, _) = executeAdminRequest("/api/admin/security", method = "POST", bodyJson = body)
+                val (code, _) = executeAdminRequest("/api/admin/shares/$shareId?purge=true", method = "DELETE")
                 if (code == 200) {
-                    remoteReadOnly = newReadOnly
-                    remoteUploadDisabled = newUploadDisabled
-                    Toast.makeText(context, "Host security policy updated", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Share record deleted", Toast.LENGTH_SHORT).show()
+                    loadShares()
                 } else {
-                    Toast.makeText(context, "Failed to update security ($code)", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Failed to delete share ($code)", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "Security update error: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Delete error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    // Clear and remove all shares (active and revoked)
+    fun clearAllShares() {
+        scope.launch {
+            isClearingAll = true
+            try {
+                val (code, _) = executeAdminRequest("/api/admin/shares", method = "DELETE")
+                if (code == 200) {
+                    Toast.makeText(context, "All shares cleared successfully", Toast.LENGTH_SHORT).show()
+                    loadShares()
+                } else {
+                    Toast.makeText(context, "Failed to clear shares ($code)", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(context, "Clear error: ${e.message}", Toast.LENGTH_SHORT).show()
             } finally {
-                isUpdatingSecurity = false
+                isClearingAll = false
             }
         }
     }
@@ -364,8 +375,6 @@ fun RemoteHostControlScreen(
 
     LaunchedEffect(remoteStatus) {
         if (remoteStatus != null) {
-            remoteReadOnly = remoteStatus!!.readOnly
-            remoteUploadDisabled = remoteStatus!!.uploadDisabled
             loadDirectory("/")
             loadShares()
         }
@@ -938,8 +947,27 @@ fun RemoteHostControlScreen(
                                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
                                     color = CyanNeon
                                 )
-                                IconButton(onClick = { loadShares() }, modifier = Modifier.size(28.dp)) {
-                                    Icon(imageVector = Icons.Default.Refresh, contentDescription = "Refresh", tint = textSecondary)
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    if (sharesList.isNotEmpty()) {
+                                        OutlinedButton(
+                                            onClick = { showClearAllConfirm = true },
+                                            shape = RoundedCornerShape(8.dp),
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFEF4444).copy(alpha = 0.6f)),
+                                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFCA5A5)),
+                                            enabled = !isClearingAll
+                                        ) {
+                                            Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(13.dp))
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text("Clear All", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                    IconButton(onClick = { loadShares() }, modifier = Modifier.size(28.dp)) {
+                                        Icon(imageVector = Icons.Default.Refresh, contentDescription = "Refresh", tint = textSecondary)
+                                    }
                                 }
                             }
 
@@ -1070,6 +1098,21 @@ fun RemoteHostControlScreen(
                                                             Spacer(modifier = Modifier.width(4.dp))
                                                             Text("Revoke Access", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                                         }
+                                                    } else {
+                                                        Button(
+                                                            onClick = { deleteShare(share.id) },
+                                                            modifier = Modifier.weight(1f),
+                                                            shape = RoundedCornerShape(8.dp),
+                                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                                            colors = ButtonDefaults.buttonColors(
+                                                                containerColor = Color(0xFFEF4444).copy(alpha = 0.2f),
+                                                                contentColor = Color(0xFFFCA5A5)
+                                                            )
+                                                        ) {
+                                                            Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(14.dp))
+                                                            Spacer(modifier = Modifier.width(4.dp))
+                                                            Text("Delete Record", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                                        }
                                                     }
                                                 }
                                             }
@@ -1088,80 +1131,6 @@ fun RemoteHostControlScreen(
                                 .verticalScroll(rememberScrollState()),
                             verticalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
-                            Text(
-                                text = "REMOTE SECURITY POLICIES",
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
-                                color = CyanNeon
-                            )
-
-                            // Read Only Mode Toggle
-                            Surface(
-                                modifier = Modifier.fillMaxWidth(),
-                                color = if (isDarkTheme) Color(0xFF0F172A) else LightSurfaceElevated,
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(14.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                        modifier = Modifier.weight(1f)
-                                    ) {
-                                        Icon(Icons.Default.EditOff, contentDescription = null, tint = AmberWarn)
-                                        Column {
-                                            Text("Enforce Read-Only Mode", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold), color = textPrimary)
-                                            Text("Prevents all visitors from renaming or deleting host files", style = MaterialTheme.typography.bodySmall, color = textSecondary)
-                                        }
-                                    }
-                                    Switch(
-                                        checked = remoteReadOnly,
-                                        onCheckedChange = { updateSecuritySettings(it, remoteUploadDisabled) },
-                                        enabled = !isUpdatingSecurity,
-                                        colors = SwitchDefaults.colors(checkedThumbColor = CyanNeon, checkedTrackColor = CyanNeon.copy(alpha = 0.4f))
-                                    )
-                                }
-                            }
-
-                            // Block Uploads Toggle
-                            Surface(
-                                modifier = Modifier.fillMaxWidth(),
-                                color = if (isDarkTheme) Color(0xFF0F172A) else LightSurfaceElevated,
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(14.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                        modifier = Modifier.weight(1f)
-                                    ) {
-                                        Icon(Icons.Default.Block, contentDescription = null, tint = Color(0xFFEF4444))
-                                        Column {
-                                            Text("Disable File Uploads", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold), color = textPrimary)
-                                            Text("Rejects incoming uploads from connected browsers", style = MaterialTheme.typography.bodySmall, color = textSecondary)
-                                        }
-                                    }
-                                    Switch(
-                                        checked = remoteUploadDisabled,
-                                        onCheckedChange = { updateSecuritySettings(remoteReadOnly, it) },
-                                        enabled = !isUpdatingSecurity,
-                                        colors = SwitchDefaults.colors(checkedThumbColor = Color(0xFFEF4444), checkedTrackColor = Color(0xFFEF4444).copy(alpha = 0.4f))
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(6.dp))
-
                             Text(
                                 text = "LIVE HARDWARE & NETWORK TELEMETRY",
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
@@ -1334,6 +1303,44 @@ fun RemoteHostControlScreen(
                     OutlinedButton(onClick = { itemToShare = null }) {
                         Text("Cancel")
                     }
+                }
+            },
+            containerColor = if (isDarkTheme) Slate900 else LightSurface
+        )
+    }
+
+    // Clear All Shares Confirmation Dialog
+    if (showClearAllConfirm) {
+        AlertDialog(
+            onDismissRequest = { showClearAllConfirm = false },
+            title = {
+                Text(
+                    text = "Clear All Shares?",
+                    fontWeight = FontWeight.Bold,
+                    color = textPrimary
+                )
+            },
+            text = {
+                Text(
+                    text = "This will immediately revoke access for all connected visitors and permanently delete all share records from the host.",
+                    color = textSecondary,
+                    fontSize = 14.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showClearAllConfirm = false
+                        clearAllShares()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444), contentColor = Color.White)
+                ) {
+                    Text("Clear All", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showClearAllConfirm = false }) {
+                    Text("Cancel")
                 }
             },
             containerColor = if (isDarkTheme) Slate900 else LightSurface

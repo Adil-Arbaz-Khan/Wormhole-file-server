@@ -1080,17 +1080,33 @@ private fun Route.registerAdminRoutes(context: Context, config: ServerConfig, se
         call.respond(list)
     }
 
-    // Admin Revoke Share
+    // Admin Clear All Shares
+    delete("/api/admin/shares") {
+        if (!isAuthorizedAdmin(call, config, context)) {
+            call.respond(HttpStatusCode.Unauthorized, OperationResponse(false, "Unauthorized admin access"))
+            return@delete
+        }
+        val success = ShareRepository.clearAllShares()
+        ActivityLogger.log(ActivityType.SERVER_EVENT, "All Shares Cleared", "Cleared by admin")
+        call.respond(HttpStatusCode.OK, OperationResponse(success, "All shares cleared"))
+    }
+
+    // Admin Revoke / Delete Share
     delete("/api/admin/shares/{id}") {
         if (!isAuthorizedAdmin(call, config, context)) {
             call.respond(HttpStatusCode.Unauthorized, OperationResponse(false, "Unauthorized admin access"))
             return@delete
         }
         val shareId = call.parameters["id"] ?: ""
-        val success = ShareRepository.revokeShare(shareId)
+        val purge = call.request.queryParameters["purge"] == "true"
+        val success = if (purge) {
+            ShareRepository.deleteShare(shareId)
+        } else {
+            ShareRepository.revokeShare(shareId)
+        }
         if (success) {
-            ActivityLogger.log(ActivityType.SHARE_REVOKED, "Share Revoked", "ID: $shareId")
-            call.respond(HttpStatusCode.OK, OperationResponse(true, "Share revoked successfully"))
+            ActivityLogger.log(ActivityType.SHARE_REVOKED, if (purge) "Share Deleted" else "Share Revoked", "ID: $shareId")
+            call.respond(HttpStatusCode.OK, OperationResponse(true, if (purge) "Share deleted" else "Share revoked"))
         } else {
             call.respond(HttpStatusCode.NotFound, OperationResponse(false, "Share not found"))
         }

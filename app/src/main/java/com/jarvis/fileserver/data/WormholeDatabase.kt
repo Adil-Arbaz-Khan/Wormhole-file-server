@@ -181,6 +181,14 @@ object ShareRepository {
     }
 
     @Synchronized
+    fun clearAllShares(): Boolean {
+        val db = dbHelper?.writableDatabase ?: return false
+        val count = db.delete(WormholeDbHelper.TABLE_SHARES, null, null)
+        refreshShares()
+        return count >= 0
+    }
+
+    @Synchronized
     fun registerAdminDevice(record: AdminDeviceRecord): Boolean {
         val db = dbHelper?.writableDatabase ?: return false
         val cv = ContentValues().apply {
